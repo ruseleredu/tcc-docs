@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunktcc_docs=self.webpackChunktcc_docs||[]).push([["3220"],{1912(c){c.exports=JSON.parse('{"blogBasePath":"/tcc-docs/blog","blogTitle":"Blog","authorsListPath":"/tcc-docs/blog/authors"}')}}]);
