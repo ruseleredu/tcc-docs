@@ -1,0 +1,18 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE my_table (  id INTEGER PRIMARY KEY AUTOINCREMENT,  name TEXT,  category TEXT,  status TEXT);
+INSERT INTO my_table VALUES(1,'Project Alpha','Frontend','Live');
+INSERT INTO my_table VALUES(2,'Project Beta','Backend','In Progress');
+INSERT INTO my_table VALUES(3,'Project Alpha','Frontend','Live');
+INSERT INTO my_table VALUES(4,'Project Beta','Backend','In Progress');
+INSERT INTO my_table VALUES(5,'Docusaurus Setup','Documentation','Active');
+INSERT INTO my_table VALUES(6,'SQLite Integration','Database','Completed');
+INSERT INTO my_table VALUES(7,'New Service','Backend','Production');
+INSERT INTO my_table VALUES(8,'New Service','Backend','Production');
+INSERT INTO my_table VALUES(9,'New Service','Backend','Production');
+INSERT INTO my_table VALUES(10,'New Service','Backend','Production');
+INSERT INTO my_table VALUES(11,'Docusaurus Setup','Documentation','Active');
+INSERT INTO my_table VALUES(12,'SQLite Integration','Database','Completed');
+INSERT INTO my_table VALUES(13,'New Service','Backend','Production');
+INSERT INTO sqlite_sequence VALUES('my_table',13);
+COMMIT;
