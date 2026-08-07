@@ -1,0 +1,229 @@
+---
+id: sqlite-guide
+title: SQLite Integration Guide
+sidebar_label: SQLite Setup
+---
+
+import SqlTable from "@site/src/components/SqlTable";
+
+# SQLite Integration Guide
+
+This guide covers how to set up **SQLite** in a Docusaurus project using [better-sqlite3](https://github.com/WiseLibs/better-sqlite3), pre-build JSON exports, and React table rendering.
+
+---
+
+## 1. Project Architecture
+
+Since Docusaurus is a **Static Site Generator (SSG)**, Node.js reads the SQLite database at **build time**, exports the tables into a JSON file, and React builds static pages from that JSON.
+
+```
+
+┌──────────────────┐    node scripts/fetch-db.js    ┌──────────────────────┐
+│ data/mydb.sqlite ├───────────────────────────────►│ src/data/tableData.json │
+└──────────────────┘                                └──────────┬───────────┘
+│
+▼
+ (MDX Page)
+
+```
+
+---
+
+## 2. Installation
+
+Install `better-sqlite3` in your Docusaurus root directory:
+
+```bash
+npm install better-sqlite3
+```
+
+---
+
+## 3. Automation Scripts
+
+Place these Node.js scripts in your project's `./scripts/` directory.
+
+### Initialize Database (`scripts/init-db.js`)
+
+Creates the `/data/mydb.sqlite` file and seeds initial mock data:
+
+```javascript title="scripts/init-db.js"
+const Database = require("better-sqlite3");
+const fs = require("fs");
+const path = require("path");
+
+const dataDir = path.join(__dirname, "../data");
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const db = new Database(path.join(dataDir, "mydb.sqlite"));
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS my_table (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    status TEXT NOT NULL
+  );
+`);
+
+const insert = db.prepare(
+  "INSERT INTO my_table (name, category, status) VALUES (?, ?, ?)",
+);
+insert.run("Docusaurus Core", "Framework", "Active");
+insert.run("SQLite Engine", "Database", "Connected");
+
+db.close();
+console.log("✅ SQLite database initialized and seeded.");
+```
+
+### Export Data to JSON (`scripts/fetch-db.js`)
+
+Extracts SQLite rows into a static `tableData.json` file before Docusaurus compiles:
+
+```javascript title="scripts/fetch-db.js"
+const Database = require("better-sqlite3");
+const fs = require("fs");
+const path = require("path");
+
+const dbPath = path.join(__dirname, "../data/mydb.sqlite");
+
+if (!fs.existsSync(dbPath)) {
+  console.error('❌ Database file not found. Run "npm run db:init" first.');
+  process.exit(1);
+}
+
+const db = new Database(dbPath);
+const rows = db
+  .prepare("SELECT id, name, category, status FROM my_table")
+  .all();
+
+const outputDir = path.join(__dirname, "../src/data");
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
+fs.writeFileSync(
+  path.join(outputDir, "tableData.json"),
+  JSON.stringify(rows, null, 2),
+);
+
+db.close();
+console.log("✅ SQLite data exported to src/data/tableData.json");
+```
+
+### Update Database Records (`scripts/update-db.js`)
+
+Appends new records directly to the database:
+
+```javascript title="scripts/update-db.js"
+const Database = require("better-sqlite3");
+const path = require("path");
+
+function addEntry(name, category, status) {
+  const dbPath = path.join(__dirname, "../data/mydb.sqlite");
+  const db = new Database(dbPath);
+
+  const stmt = db.prepare(
+    "INSERT INTO my_table (name, category, status) VALUES (?, ?, ?)",
+  );
+  const result = stmt.run(name, category, status);
+
+  db.close();
+  console.log(`✅ Record inserted with ID: ${result.lastInsertRowid}`);
+}
+
+// Example insertion
+addEntry("New Module", "Extension", "Production");
+```
+
+---
+
+## 4. Package Configuration
+
+Add build hooks in your `package.json` to ensure the database export runs automatically during local development and CI/CD builds:
+
+```json title="package.json"
+"scripts": {
+  "db:init": "node scripts/init-db.js",
+  "db:update": "node scripts/update-db.js",
+  "prestart": "node scripts/fetch-db.js",
+  "prebuild": "node scripts/fetch-db.js",
+  "start": "docusaurus start",
+  "build": "docusaurus build"
+}
+
+```
+
+---
+
+## 5. React Table Component
+
+Create `src/components/SqlTable.js` to render the exported database JSON as an HTML table:
+
+```jsx title="src/components/SqlTable.js"
+import React from "react";
+import tableData from "../data/tableData.json";
+
+export default function SqlTable() {
+  if (!tableData || tableData.length === 0) {
+    return <p>No data found in SQLite table.</p>;
+  }
+
+  const columns = Object.keys(tableData[0]);
+
+  return (
+    <div style={{ overflowX: "auto", margin: "1rem 0" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={col}
+                style={{
+                  borderBottom: "2px solid var(--ifm-color-emphasis-300)",
+                  textAlign: "left",
+                  padding: "8px",
+                }}
+              >
+                {col.toUpperCase()}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {tableData.map((row, idx) => (
+            <tr key={idx}>
+              {columns.map((col) => (
+                <td
+                  key={col}
+                  style={{
+                    borderBottom: "1px solid var(--ifm-color-emphasis-200)",
+                    padding: "8px",
+                  }}
+                >
+                  {row[col]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+---
+
+## 6. Live Rendering Demo
+
+Below is the live table populated from the exported `tableData.json`:
+
+---
+
+### How to test this page:
+
+1. Run `npm run db:init` to create the initial database.
+2. Run `npm run start`. The `prestart` hook will run `fetch-db.js`, create `src/data/tableData.json`, and serve your Docusaurus site with the rendered table!

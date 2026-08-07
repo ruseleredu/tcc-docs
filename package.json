@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
+    "db:init": "node scripts/init-db.js",
+    "db:update": "node scripts/update-db.js",
+    "prestart": "node scripts/fetch-db.js",
+    "prebuild": "node scripts/fetch-db.js",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
@@ -20,10 +24,12 @@
     "@docusaurus/faster": "3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
     "@mdx-js/react": "^3.0.0",
+    "better-sqlite3": "^13.0.3",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sqlite": "^5.1.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",

@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "name": "Project Alpha",
+    "category": "Frontend",
+    "status": "Live"
+  },
+  {
+    "id": 2,
+    "name": "Project Beta",
+    "category": "Backend",
+    "status": "In Progress"
+  },
+  {
+    "id": 3,
+    "name": "Project Alpha",
+    "category": "Frontend",
+    "status": "Live"
+  },
+  {
+    "id": 4,
+    "name": "Project Beta",
+    "category": "Backend",
+    "status": "In Progress"
+  },
+  {
+    "id": 5,
+    "name": "Docusaurus Setup",
+    "category": "Documentation",
+    "status": "Active"
+  },
+  {
+    "id": 6,
+    "name": "SQLite Integration",
+    "category": "Database",
+    "status": "Completed"
+  },
+  {
+    "id": 7,
+    "name": "New Service",
+    "category": "Backend",
+    "status": "Production"
+  },
+  {
+    "id": 8,
+    "name": "New Service",
+    "category": "Backend",
+    "status": "Production"
+  },
+  {
+    "id": 9,
+    "name": "New Service",
+    "category": "Backend",
+    "status": "Production"
+  },
+  {
+    "id": 10,
+    "name": "New Service",
+    "category": "Backend",
+    "status": "Production"
+  },
+  {
+    "id": 11,
+    "name": "Docusaurus Setup",
+    "category": "Documentation",
+    "status": "Active"
+  },
+  {
+    "id": 12,
+    "name": "SQLite Integration",
+    "category": "Database",
+    "status": "Completed"
+  },
+  {
+    "id": 13,
+    "name": "New Service",
+    "category": "Backend",
+    "status": "Production"
+  }
+]
