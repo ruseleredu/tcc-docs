@@ -1,0 +1,202 @@
+---
+id: sqlite-backup-guide
+title: SQLite Backup & Restoration Guide
+sidebar_label: Backup & Restore
+---
+
+# SQLite Backup & Restoration Guide
+
+This guide covers how to back up, restore, and generate human-readable SQL dumps from your project's SQLite database using Node.js and **`better-sqlite3`**.
+
+---
+
+## 1. Backup Strategies Overview
+
+SQLite databases can be backed up using three primary approaches depending on your requirements:
+
+| Strategy                | Output File        | Best Used For                                                              |
+| :---------------------- | :----------------- | :------------------------------------------------------------------------- |
+| **Binary File Backup**  | `.sqlite`          | Fast, automated binary snapshots via SQLite's Online Backup API.           |
+| **Readable SQL Dump**   | `.sql`             | Human-readable text dumps tracking schemas and `INSERT` statements in Git. |
+| **Native Shell Backup** | `.sqlite` / `.sql` | Manual execution from the terminal using the `sqlite3` CLI tool.           |
+
+---
+
+## 2. Programmatic Binary Backup (`better-sqlite3`)
+
+The safest way to duplicate an active SQLite database without locking active processes or risking file corruption is using the built-in `.backup()` API.
+
+### Backup Script (`scripts/backup-db.js`)
+
+```javascript title="scripts/backup-db.js"
+const Database = require("better-sqlite3");
+const path = require("path");
+const fs = require("fs");
+
+async function runBackup() {
+  try {
+    const dbPath = path.join(__dirname, "../data/mydb.sqlite");
+
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`Source database not found at: ${dbPath}`);
+    }
+
+    const db = new Database(dbPath);
+    const backupPath = path.join(__dirname, "../data/mydb_backup.sqlite");
+
+    // Non-blocking binary backup
+    await db.backup(backupPath);
+    db.close();
+
+    console.log(
+      `✅ Binary SQLite backup created successfully at: ${backupPath}`,
+    );
+  } catch (err) {
+    console.error("❌ Backup failed:", err.message);
+    process.exit(1);
+  }
+}
+
+runBackup();
+```
+
+---
+
+## 3. Human-Readable SQL Dump Generator
+
+If you want a readable `.sql` file with schema `CREATE TABLE` statements and `INSERT` statements for database version control or easy inspection, use this custom Node.js script.
+
+### SQL Dump Script (`scripts/dump-db.js`)
+
+```javascript title="scripts/dump-db.js"
+const Database = require("better-sqlite3");
+const fs = require("fs");
+const path = require("path");
+
+function escapeSqlValue(val) {
+  if (val === null || val === undefined) return "NULL";
+  if (typeof val === "number") return val;
+  if (typeof val === "boolean") return val ? 1 : 0;
+  return `'${String(val).replace(/'/g, "''")}'`;
+}
+
+function dumpDatabase() {
+  try {
+    const dbPath = path.join(__dirname, "../data/mydb.sqlite");
+
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`Database file not found at: ${dbPath}`);
+    }
+
+    const db = new Database(dbPath);
+    let sqlDump = `-- SQL Dump generated on ${new Date().toISOString()}\n`;
+    sqlDump += `PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n\n`;
+
+    // Fetch user tables
+    const tables = db
+      .prepare(
+        "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+      )
+      .all();
+
+    for (const table of tables) {
+      // Append schema
+      sqlDump += `-- Schema for table: ${table.name}\n${table.sql};\n\n`;
+
+      // Fetch rows
+      const rows = db.prepare(`SELECT * FROM "${table.name}"`).all();
+      if (rows.length > 0) {
+        sqlDump += `-- Data for table: ${table.name}\n`;
+        const columns = Object.keys(rows[0])
+          .map((col) => `"${col}"`)
+          .join(", ");
+
+        for (const row of rows) {
+          const values = Object.values(row).map(escapeSqlValue).join(", ");
+          sqlDump += `INSERT INTO "${table.name}" (${columns}) VALUES (${values});\n`;
+        }
+        sqlDump += `\n`;
+      }
+    }
+
+    sqlDump += `COMMIT;\n`;
+    db.close();
+
+    const dumpPath = path.join(__dirname, "../data/mydb_dump.sql");
+    fs.writeFileSync(dumpPath, sqlDump, "utf8");
+
+    console.log(`✅ Readable SQL dump generated at: ${dumpPath}`);
+  } catch (err) {
+    console.error("❌ Failed to create dump:", err.message);
+    process.exit(1);
+  }
+}
+
+dumpDatabase();
+```
+
+---
+
+## 4. Restoring Database from an SQL Dump
+
+To recreate or restore your SQLite database file from a generated `.sql` text dump, execute the script below:
+
+### Restore Script (`scripts/restore-db.js`)
+
+```javascript title="scripts/restore-db.js"
+const Database = require("better-sqlite3");
+const fs = require("fs");
+const path = require("path");
+
+function restoreDatabase() {
+  try {
+    const dumpPath = path.join(__dirname, "../data/mydb_dump.sql");
+    if (!fs.existsSync(dumpPath)) {
+      throw new Error(`SQL dump file not found at: ${dumpPath}`);
+    }
+
+    const sqlScript = fs.readFileSync(dumpPath, "utf8");
+    const targetDbPath = path.join(__dirname, "../data/mydb_restored.sqlite");
+
+    const db = new Database(targetDbPath);
+    db.exec(sqlScript); // Execute full SQL script
+    db.close();
+
+    console.log(`✅ Database successfully restored to: ${targetDbPath}`);
+  } catch (err) {
+    console.error("❌ Restoration failed:", err.message);
+    process.exit(1);
+  }
+}
+
+restoreDatabase();
+```
+
+---
+
+## 5. Adding Automation to `package.json`
+
+Add convenience command aliases inside your `package.json` file:
+
+```json title="package.json"
+"scripts": {
+  "db:backup": "node scripts/backup-db.js",
+  "db:dump": "node scripts/dump-db.js",
+  "db:restore": "node scripts/restore-db.js"
+}
+
+```
+
+Now you can quickly perform backups or create readable dumps from your terminal:
+
+```bash
+# Generate binary backup file (.sqlite)
+npm run db:backup
+
+# Generate readable text dump (.sql)
+npm run db:dump
+
+# Restore database from SQL dump
+npm run db:restore
+
+```
