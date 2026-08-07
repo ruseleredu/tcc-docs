@@ -1,0 +1,232 @@
+---
+id: react-pdf-guide
+title: React PDF Renderer Guide
+sidebar_label: React PDF Setup
+---
+
+import useBaseUrl from "@docusaurus/useBaseUrl";
+
+# `@react-pdf/renderer` Integration Guide
+
+This guide covers how to generate vector PDF documents directly from your **SQLite** database using [@react-pdf/renderer](https://react-pdf.org/) during the Docusaurus build process.
+
+---
+
+## 1. Why `@react-pdf/renderer`?
+
+Unlike native LaTeX compilers, `@react-pdf/renderer` is written entirely in JavaScript/Node.js.
+
+- **No native C++/TeX dependencies:** Works seamlessly across Windows, macOS, Linux, and CI/CD runners (like GitHub Actions).
+- **React Components:** Define document structures using familiar JSX elements like `<Document>`, `<Page>`, `<View>`, and `<Text>`.
+- **CSS Flexbox Layouts:** Style your layout using a familiar Flexbox-like styling API.
+
+---
+
+## 2. Installation
+
+Install `@react-pdf/renderer` along with `better-sqlite3` in your project root:
+
+```bash
+npm install @react-pdf/renderer better-sqlite3
+```
+
+---
+
+## 3. PDF Generator Script
+
+Create a Node.js script in your `./scripts/` directory to fetch SQLite records and compile the document into `./static/pdf/report.pdf`.
+
+```javascript title="scripts/generate-pdf-react.js"
+const React = require("react");
+const {
+  renderToFile,
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+} = require("@react-pdf/renderer");
+const Database = require("better-sqlite3");
+const path = require("path");
+const fs = require("fs");
+
+// 1. Define document styles using Flexbox
+const styles = StyleSheet.create({
+  page: { padding: 35, fontSize: 10, fontFamily: "Helvetica" },
+  title: {
+    fontSize: 20,
+    marginBottom: 15,
+    fontWeight: "bold",
+    color: "#1e293b",
+  },
+  subtitle: { fontSize: 10, marginBottom: 20, color: "#64748b" },
+  table: {
+    display: "table",
+    width: "auto",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+  },
+  tableRow: { flexDirection: "row" },
+  tableHeader: { backgroundColor: "#f1f5f9", fontWeight: "bold" },
+  colHeader: {
+    padding: 6,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    width: "25%",
+    fontWeight: "bold",
+  },
+  colCell: { padding: 6, borderWidth: 1, borderColor: "#cbd5e1", width: "25%" },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 35,
+    right: 35,
+    fontSize: 8,
+    textAlign: "center",
+    color: "#94a3b8",
+  },
+});
+
+// 2. Build the PDF Layout Component
+function PdfDocument({ data }) {
+  return React.createElement(
+    Document,
+    null,
+    React.createElement(
+      Page,
+      { size: "A4", style: styles.page },
+      // Document Header
+      React.createElement(
+        Text,
+        { style: styles.title },
+        "SQLite Database Report",
+      ),
+      React.createElement(
+        Text,
+        { style: styles.subtitle },
+        `Generated on: ${new Date().toLocaleDateString()}`,
+      ),
+
+      // Data Table
+      React.createElement(
+        View,
+        { style: styles.table },
+        // Table Header
+        React.createElement(
+          View,
+          { style: [styles.tableRow, styles.tableHeader] },
+          React.createElement(Text, { style: styles.colHeader }, "ID"),
+          React.createElement(Text, { style: styles.colHeader }, "Name"),
+          React.createElement(Text, { style: styles.colHeader }, "Category"),
+          React.createElement(Text, { style: styles.colHeader }, "Status"),
+        ),
+        // Table Rows
+        data.map((row) =>
+          React.createElement(
+            View,
+            { style: styles.tableRow, key: row.id },
+            React.createElement(
+              Text,
+              { style: styles.colCell },
+              String(row.id),
+            ),
+            React.createElement(Text, { style: styles.colCell }, row.name),
+            React.createElement(Text, { style: styles.colCell }, row.category),
+            React.createElement(Text, { style: styles.colCell }, row.status),
+          ),
+        ),
+      ),
+
+      // Footer
+      React.createElement(
+        Text,
+        { style: styles.footer },
+        "Confidential - Automated Docusaurus Build Export",
+      ),
+    ),
+  );
+}
+
+// 3. Query Database & Output PDF File
+async function generatePdf() {
+  try {
+    const dbPath = path.join(__dirname, "../data/mydb.sqlite");
+
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`SQLite database not found at: ${dbPath}`);
+    }
+
+    const db = new Database(dbPath);
+    const rows = db
+      .prepare("SELECT id, name, category, status FROM my_table")
+      .all();
+    db.close();
+
+    const outputDir = path.join(__dirname, "../static/pdf");
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const outputPath = path.join(outputDir, "report.pdf");
+    await renderToFile(
+      React.createElement(PdfDocument, { data: rows }),
+      outputPath,
+    );
+
+    console.log("✅ PDF successfully created at static/pdf/report.pdf");
+  } catch (err) {
+    console.error("❌ Failed to generate PDF:", err.message);
+    process.exit(1);
+  }
+}
+
+generatePdf();
+```
+
+---
+
+## 4. Automation in `package.json`
+
+Wire the script into your build hooks so the PDF is generated before Docusaurus starts or builds:
+
+```json title="package.json"
+"scripts": {
+  "db:pdf": "node scripts/generate-pdf-react.js",
+  "prestart": "node scripts/fetch-db.js && node scripts/generate-pdf-react.js",
+  "prebuild": "node scripts/fetch-db.js && node scripts/generate-pdf-react.js",
+  "start": "docusaurus start",
+  "build": "docusaurus build"
+}
+```
+
+---
+
+## 5. Download & Preview Component
+
+Use the snippet below in your MDX pages to allow users to download and preview the generated document:
+
+# SQLite PDF Report
+
+Click the button below to download the compiled PDF report, or view the live preview:
+
+<a
+  className="button button--primary button--lg"
+  href={useBaseUrl("/pdf/report.pdf")}
+  download="report.pdf"
+>
+  📥 Download PDF Report
+</a>
+
+---
+
+### Embedded PDF Preview
+
+<iframe
+  src={useBaseUrl("/pdf/report.pdf")}
+  width="100%"
+  height="650px"
+  style={{
+    border: "1px solid var(--ifm-color-emphasis-300)",
+    borderRadius: "8px",
+  }}
+/>
