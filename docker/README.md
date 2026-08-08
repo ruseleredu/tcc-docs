@@ -1,4 +1,7 @@
 
+Database management for VSCode
+- https://github.com/mtxr/vscode-sqltools
+  
 ## Start
 
 ```bash
@@ -25,4 +28,20 @@ docker exec -it mariadb mariadb-dump -u root -p"rootpassword" --no-data tcc > tc
 
 ```bash
 docker exec -it mariadb mariadb-dump -u root -p"rootpassword" --no-data daelt > daelt-schema.sql
+```
+
+# SQLite
+
+## Init from shema
+
+Having everything consolidated in combined_database.sqlite gives you native foreign keys, instant cross-table joins, and effortless single-file management.
+
+```bash
+node init-daelt-db.js
+```
+
+## Add some fake data
+
+```bash
+node seed-db.js
 ```
