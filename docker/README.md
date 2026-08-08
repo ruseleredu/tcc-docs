@@ -51,3 +51,7 @@ node seed-db.js
 ```bash
 node dump-db.js
 ```
+
+```bash
+node dump-schema.js
+```
