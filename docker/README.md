@@ -1,6 +1,7 @@
 
 Database management for VSCode
 - https://github.com/mtxr/vscode-sqltools
+- https://www.youtube.com/watch?v=_NBk7LtlFJc
   
 ## Start
 
