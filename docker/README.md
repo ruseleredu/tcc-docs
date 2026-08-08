@@ -45,3 +45,9 @@ node init-daelt-db.js
 ```bash
 node seed-db.js
 ```
+
+## Dump db
+
+```bash
+node dump-db.js
+```
