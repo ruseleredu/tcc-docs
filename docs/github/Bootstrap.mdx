@@ -1,0 +1,1339 @@
+---
+title: Bootstrap + GitHub Pages
+sidebar_label: Bootstrap + GitHub Pages
+---
+
+# 🌐 Site estático com HTML + Bootstrap + GitHub Pages
+
+Este guia apresenta a maneira mais simples de criar, editar, visualizar localmente e publicar um site estático utilizando:
+
+- **HTML5**
+- **Bootstrap 5**
+- **CSS**
+- **JavaScript**
+- **Visual Studio Code**
+- **Live Server**
+- **Git**
+- **GitHub Pages**
+
+A proposta é evitar frameworks e geradores de sites estáticos. O site é composto diretamente por arquivos HTML e recursos estáticos.
+
+---
+
+## 📋 Sumário
+
+- [1. Arquitetura](#1-arquitetura)
+- [2. Pré-requisitos](#2-pré-requisitos)
+- [3. Criar o projeto](#3-criar-o-projeto)
+- [4. Estrutura de diretórios](#4-estrutura-de-diretórios)
+- [5. Criar a página HTML](#5-criar-a-página-html)
+- [6. Adicionar Bootstrap](#6-adicionar-bootstrap)
+- [7. Criar CSS personalizado](#7-criar-css-personalizado)
+- [8. Adicionar JavaScript](#8-adicionar-javascript)
+- [9. Visualizar no VS Code](#9-visualizar-no-vs-code)
+- [10. Criar múltiplas páginas](#10-criar-múltiplas-páginas)
+- [11. Criar uma barra de navegação](#11-criar-uma-barra-de-navegação)
+- [12. Testar o site](#12-testar-o-site)
+- [13. Criar o repositório no GitHub](#13-criar-o-repositório-no-github)
+- [14. Publicar com GitHub Pages](#14-publicar-com-github-pages)
+- [15. Atualizar o site](#15-atualizar-o-site)
+- [16. Domínio personalizado](#16-domínio-personalizado)
+- [17. Vantagens e limitações](#17-vantagens-e-limitações)
+- [18. Estrutura final](#18-estrutura-final)
+
+---
+
+# 1. Arquitetura
+
+A arquitetura utilizada é extremamente simples:
+
+```text
+                    ┌─────────────────┐
+                    │    VS Code      │
+                    │                 │
+                    │ HTML            │
+                    │ CSS             │
+                    │ JavaScript      │
+                    └────────┬────────┘
+                             │
+                             │ edição
+                             ▼
+                    ┌─────────────────┐
+                    │   Live Server   │
+                    └────────┬────────┘
+                             │
+                             │ localhost
+                             ▼
+                    ┌─────────────────┐
+                    │    Browser      │
+                    └─────────────────┘
+
+
+                    PUBLICAÇÃO
+                         │
+                         ▼
+                    ┌─────────────┐
+                    │    Git      │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   GitHub    │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ GitHub Pages│
+                    └──────┬──────┘
+                           │
+                           ▼
+                    🌐 Site publicado
+```
+
+Não existe:
+
+- Jekyll
+- Hugo
+- Eleventy
+- Astro
+- Docusaurus
+- Node.js
+- npm
+- banco de dados
+- servidor backend
+
+O GitHub Pages simplesmente entrega os arquivos estáticos ao navegador.
+
+---
+
+# 2. Pré-requisitos
+
+Instale:
+
+### Visual Studio Code
+
+Baixe e instale o VS Code.
+
+### Git
+
+Instale o Git para versionar o projeto e enviá-lo para o GitHub.
+
+### Navegador
+
+Qualquer navegador moderno:
+
+- Firefox
+- Chrome
+- Edge
+- Brave
+
+---
+
+# 3. Criar o projeto
+
+Crie uma pasta para o site.
+
+Por exemplo:
+
+```text
+meu-site/
+```
+
+No Windows:
+
+```powershell
+mkdir meu-site
+cd meu-site
+```
+
+Depois abra a pasta no VS Code:
+
+```powershell
+code .
+```
+
+Ou utilize:
+
+```text
+VS Code
+→ File
+→ Open Folder
+→ meu-site
+```
+
+---
+
+# 4. Estrutura de diretórios
+
+Comece com a seguinte estrutura:
+
+```text
+meu-site/
+│
+├── index.html
+│
+├── about.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   └── app.js
+│
+└── img/
+```
+
+Posteriormente podemos acrescentar:
+
+```text
+meu-site/
+│
+├── index.html
+├── about.html
+├── contact.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   └── app.js
+│
+├── img/
+│   ├── logo.png
+│   └── banner.jpg
+│
+└── docs/
+```
+
+---
+
+# 5. Criar a página HTML
+
+Crie:
+
+```text
+index.html
+```
+
+Utilize a estrutura HTML5 básica:
+
+```html
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>Meu Site</title>
+
+</head>
+
+<body>
+
+    <h1>Meu Site</h1>
+
+    <p>
+        Meu primeiro site estático.
+    </p>
+
+</body>
+
+</html>
+```
+
+Salve o arquivo.
+
+---
+
+# 6. Adicionar Bootstrap
+
+A maneira mais simples de utilizar Bootstrap é através do CDN.
+
+No `<head>`:
+
+```html
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+```
+
+Antes do fechamento de `</body>`:
+
+```html
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+</script>
+```
+
+A página completa fica:
+
+```html
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>Meu Site</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+</head>
+
+<body>
+
+    <main class="container py-5">
+
+        <h1 class="display-4">
+            Meu Site
+        </h1>
+
+        <p class="lead">
+            Site estático utilizando HTML e Bootstrap.
+        </p>
+
+        <button class="btn btn-primary">
+            Começar
+        </button>
+
+    </main>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+</body>
+
+</html>
+```
+
+---
+
+# 7. Criar CSS personalizado
+
+Bootstrap resolve grande parte do layout, mas você pode criar seu próprio CSS.
+
+Crie:
+
+```text
+css/style.css
+```
+
+Exemplo:
+
+```css
+body {
+    background-color: #f8f9fa;
+}
+
+.hero {
+    padding: 6rem 0;
+}
+
+.footer {
+    margin-top: 4rem;
+    padding: 2rem 0;
+}
+```
+
+Depois carregue o CSS:
+
+```html
+<link
+    rel="stylesheet"
+    href="css/style.css">
+```
+
+O `<head>` ficará:
+
+```html
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>Meu Site</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="css/style.css">
+
+</head>
+```
+
+---
+
+# 8. Adicionar JavaScript
+
+Crie:
+
+```text
+js/app.js
+```
+
+Exemplo:
+
+```javascript
+console.log("Site carregado!");
+```
+
+No HTML:
+
+```html
+<script src="js/app.js"></script>
+```
+
+Normalmente o script deve ser colocado antes de `</body>`:
+
+```html
+<body>
+
+    ...
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="js/app.js"></script>
+
+</body>
+```
+
+---
+
+# 9. Visualizar no VS Code
+
+## 9.1 Instalar Live Server
+
+No VS Code:
+
+```text
+Extensions
+→ procurar "Live Server"
+→ Install
+```
+
+Depois abra:
+
+```text
+index.html
+```
+
+Clique com o botão direito:
+
+```text
+Open with Live Server
+```
+
+O navegador abrirá algo parecido com:
+
+```text
+http://127.0.0.1:5500/
+```
+
+ou:
+
+```text
+http://localhost:5500/
+```
+
+---
+
+## 9.2 Live Reload
+
+Agora altere:
+
+```html
+<h1 class="display-4">
+    Meu Site
+</h1>
+```
+
+para:
+
+```html
+<h1 class="display-4">
+    Meu Site com Bootstrap
+</h1>
+```
+
+Salve:
+
+```text
+Ctrl + S
+```
+
+O navegador será atualizado automaticamente.
+
+O ciclo de desenvolvimento é:
+
+```text
+Editar
+   ↓
+Ctrl + S
+   ↓
+Live Server
+   ↓
+Browser atualizado
+```
+
+Não é necessário executar comandos de build.
+
+---
+
+# 10. Criar múltiplas páginas
+
+Crie:
+
+```text
+about.html
+```
+
+Exemplo:
+
+```html
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>Sobre</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="css/style.css">
+
+</head>
+
+<body>
+
+    <main class="container py-5">
+
+        <h1>Sobre</h1>
+
+        <p>
+            Informações sobre o projeto.
+        </p>
+
+        <a
+            href="index.html"
+            class="btn btn-primary">
+
+            Voltar
+
+        </a>
+
+    </main>
+
+</body>
+
+</html>
+```
+
+Agora:
+
+```text
+index.html
+    │
+    └── about.html
+```
+
+---
+
+# 11. Criar uma barra de navegação
+
+O Bootstrap fornece um componente Navbar.
+
+Exemplo:
+
+```html
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand"
+            href="index.html">
+
+            Meu Site
+
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div
+            class="collapse navbar-collapse"
+            id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="index.html">
+
+                        Início
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="about.html">
+
+                        Sobre
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+```
+
+O JavaScript do Bootstrap precisa estar carregado para o menu responsivo funcionar.
+
+---
+
+# 12. Criar uma página inicial completa
+
+Um exemplo simples:
+
+```html
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+
+    <title>Meu Site</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="css/style.css">
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand"
+            href="index.html">
+
+            Meu Site
+
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div
+            class="collapse navbar-collapse"
+            id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="index.html">
+
+                        Início
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="about.html">
+
+                        Sobre
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<section class="hero">
+
+    <div class="container">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-8">
+
+                <h1 class="display-3 fw-bold">
+
+                    Internet das Coisas
+
+                </h1>
+
+                <p class="lead">
+
+                    Material didático sobre IoT,
+                    ESP32, MQTT e sistemas embarcados.
+
+                </p>
+
+                <a
+                    href="about.html"
+                    class="btn btn-primary btn-lg">
+
+                    Saiba mais
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<footer class="footer">
+
+    <div class="container text-center">
+
+        <p class="text-muted">
+
+            © 2026 Meu Site
+
+        </p>
+
+    </div>
+
+</footer>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+</script>
+
+<script src="js/app.js"></script>
+
+</body>
+
+</html>
+```
+
+---
+
+# 13. Testar o site
+
+Antes de publicar, teste:
+
+### Navegação
+
+```text
+index.html
+    ↓
+about.html
+    ↓
+index.html
+```
+
+### Responsividade
+
+No navegador:
+
+```text
+F12
+→ Toggle Device Toolbar
+```
+
+Teste:
+
+```text
+Mobile
+Tablet
+Desktop
+```
+
+### Console
+
+Verifique:
+
+```text
+F12
+→ Console
+```
+
+Não devem existir erros JavaScript.
+
+### Links
+
+Teste todos os links.
+
+### Imagens
+
+Verifique se todas as imagens aparecem corretamente.
+
+---
+
+# 14. Criar o repositório no GitHub
+
+Crie um novo repositório no GitHub.
+
+Por exemplo:
+
+```text
+meu-site
+```
+
+Não é necessário adicionar:
+
+- README
+- `.gitignore`
+- licença
+
+se você já possui o projeto local.
+
+---
+
+# 15. Inicializar Git
+
+No terminal do VS Code:
+
+```bash
+git init
+```
+
+Adicione os arquivos:
+
+```bash
+git add .
+```
+
+Crie o primeiro commit:
+
+```bash
+git commit -m "Initial site"
+```
+
+Defina a branch principal:
+
+```bash
+git branch -M main
+```
+
+Adicione o repositório remoto:
+
+```bash
+git remote add origin https://github.com/SEU-USUARIO/meu-site.git
+```
+
+Envie:
+
+```bash
+git push -u origin main
+```
+
+Substitua:
+
+```text
+SEU-USUARIO
+```
+
+pelo seu usuário do GitHub.
+
+---
+
+# 16. Publicar com GitHub Pages
+
+No GitHub:
+
+```text
+Repository
+    ↓
+Settings
+    ↓
+Pages
+```
+
+Em:
+
+```text
+Build and deployment
+```
+
+selecione:
+
+```text
+Source:
+Deploy from a branch
+```
+
+Branch:
+
+```text
+main
+```
+
+Folder:
+
+```text
+/ (root)
+```
+
+Clique:
+
+```text
+Save
+```
+
+O GitHub Pages publicará o conteúdo do repositório.
+
+A URL normalmente será:
+
+```text
+https://SEU-USUARIO.github.io/meu-site/
+```
+
+---
+
+# 17. Atualizar o site
+
+Depois de fazer alterações:
+
+```bash
+git add .
+```
+
+```bash
+git commit -m "Update site"
+```
+
+```bash
+git push
+```
+
+O GitHub Pages atualizará o site.
+
+O fluxo completo passa a ser:
+
+```text
+┌──────────────────────┐
+│       VS Code        │
+│                      │
+│  editar HTML/CSS/JS  │
+└──────────┬───────────┘
+           │
+           ▼
+     Live Server
+           │
+           ▼
+     localhost
+           │
+           │
+      testar tudo
+           │
+           ▼
+          Git
+           │
+           ▼
+        GitHub
+           │
+           ▼
+    GitHub Pages
+           │
+           ▼
+      🌐 Internet
+```
+
+---
+
+# 18. Domínio personalizado
+
+É possível utilizar um domínio próprio.
+
+Por exemplo:
+
+```text
+www.exemplo.com.br
+```
+
+em vez de:
+
+```text
+usuario.github.io/meu-site/
+```
+
+No GitHub Pages você configura o domínio personalizado e depois cria os registros DNS correspondentes no provedor do domínio.
+
+---
+
+# 19. Vantagens
+
+## Simplicidade
+
+Não existe processo de build:
+
+```text
+HTML
+↓
+GitHub Pages
+```
+
+## Desenvolvimento rápido
+
+O ciclo é:
+
+```text
+Editar
+↓
+Salvar
+↓
+Visualizar
+```
+
+## Bootstrap
+
+Você pode utilizar praticamente todos os componentes do Bootstrap:
+
+- Navbar
+- Cards
+- Buttons
+- Alerts
+- Forms
+- Modal
+- Carousel
+- Accordion
+- Tabs
+- Grid
+- Utilities
+
+## Controle total
+
+Você controla diretamente:
+
+```text
+HTML
+CSS
+JavaScript
+Imagens
+```
+
+## Portabilidade
+
+O site não depende de um framework.
+
+Um arquivo:
+
+```text
+index.html
+```
+
+pode ser aberto diretamente em praticamente qualquer navegador.
+
+---
+
+# 20. Limitações
+
+A principal desvantagem aparece quando o número de páginas cresce.
+
+Imagine:
+
+```text
+100 páginas
+```
+
+e todas possuem:
+
+```html
+<nav>
+    ...
+</nav>
+```
+
+Se você alterar o menu, precisará alterar várias páginas.
+
+Também não existe automaticamente:
+
+```text
+layouts
+templates
+includes
+collections
+Markdown
+```
+
+Nesse ponto, um gerador como Jekyll ou Eleventy começa a ser interessante.
+
+---
+
+# 21. Quando usar esta abordagem?
+
+Use **HTML + Bootstrap** quando:
+
+- o site possui poucas páginas;
+- você quer máxima simplicidade;
+- o conteúdo é predominantemente HTML;
+- não precisa de blog complexo;
+- não precisa de templates;
+- quer editar tudo diretamente no VS Code;
+- quer publicar rapidamente no GitHub Pages;
+- quer evitar Node.js;
+- quer evitar Ruby;
+- quer evitar frameworks.
+
+É especialmente adequado para:
+
+```text
+Landing pages
+Portfólios
+Sites pessoais
+Projetos acadêmicos
+Pequenos sites institucionais
+Protótipos
+Páginas de projetos
+```
+
+---
+
+# 22. Quando migrar para um gerador?
+
+Se o projeto começar a ficar assim:
+
+```text
+site/
+├── 100+ páginas
+├── documentação
+├── blog
+├── categorias
+├── navegação complexa
+├── templates
+└── componentes reutilizáveis
+```
+
+considere migrar para:
+
+```text
+Jekyll
+Eleventy
+Hugo
+Astro
+Docusaurus
+```
+
+A migração pode ser gradual.
+
+Uma estratégia interessante é começar:
+
+```text
+HTML + Bootstrap
+```
+
+e posteriormente evoluir para:
+
+```text
+HTML + Bootstrap
+        +
+Jekyll/Eleventy
+```
+
+sem precisar abandonar o HTML existente.
+
+---
+
+# 23. Estrutura final recomendada
+
+Para um projeto pequeno/médio:
+
+```text
+meu-site/
+│
+├── index.html
+├── about.html
+├── contact.html
+│
+├── css/
+│   └── style.css
+│
+├── js/
+│   └── app.js
+│
+├── img/
+│   ├── logo.png
+│   ├── banner.jpg
+│   └── favicon.png
+│
+└── README.md
+```
+
+---
+
+# 24. Checklist
+
+## Desenvolvimento
+
+- [ ] Instalar VS Code
+- [ ] Instalar Git
+- [ ] Criar pasta do projeto
+- [ ] Criar `index.html`
+- [ ] Adicionar Bootstrap
+- [ ] Criar `style.css`
+- [ ] Criar `app.js`
+- [ ] Instalar Live Server
+- [ ] Testar no navegador
+- [ ] Testar responsividade
+- [ ] Verificar links
+- [ ] Verificar imagens
+
+## GitHub
+
+- [ ] Criar repositório
+- [ ] `git init`
+- [ ] `git add .`
+- [ ] `git commit`
+- [ ] `git remote add origin`
+- [ ] `git push`
+
+## GitHub Pages
+
+- [ ] Abrir Settings
+- [ ] Abrir Pages
+- [ ] Selecionar `main`
+- [ ] Selecionar `/ (root)`
+- [ ] Salvar
+- [ ] Acessar a URL publicada
+
+---
+
+# 🚀 Resumo
+
+A solução mais simples possível é:
+
+```text
+┌─────────────┐
+│   VS Code   │
+└──────┬──────┘
+       │
+       │ HTML + Bootstrap
+       ▼
+┌─────────────┐
+│ Live Server │
+└──────┬──────┘
+       │
+       │ localhost
+       ▼
+┌─────────────┐
+│   Browser   │
+└─────────────┘
+
+       ↓
+
+      Git
+
+       ↓
+
+┌─────────────┐
+│   GitHub    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│GitHub Pages │
+└──────┬──────┘
+       │
+       ▼
+      🌐
+```
+
+### Stack final
+
+```text
+HTML5
+Bootstrap 5
+CSS
+JavaScript
+VS Code
+Live Server
+Git
+GitHub
+GitHub Pages
+```
+
+**Nenhum framework é necessário.**
+
+Essa é provavelmente a melhor abordagem quando a prioridade é **"editar HTML no VS Code, visualizar imediatamente no navegador e publicar com o mínimo de complexidade"**.
