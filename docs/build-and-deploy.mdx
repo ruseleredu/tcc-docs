@@ -1,0 +1,359 @@
+---
+id: build-and-deploy
+title: Build & Deploy the Docs Site
+sidebar_label: Build & Deploy
+description: How to build a Docusaurus site in a Node container and deploy the static output to the web root, parameterized by project name.
+---
+
+# Build & Deploy the Docs Site
+
+This page documents `docusaurus-deploy.sh`, the script that builds a Docusaurus
+site inside a Node container and copies the static output to the web server's
+document root. It's parameterized by a single `PJT_NAME` variable, so the same
+script deploys any docs project on the org just by changing that one value.
+
+:::info[What the script does]
+
+1. Updates a persistent local clone of the repo (or clones it the first time).
+2. Rewrites `url` and `baseUrl` in the Docusaurus config for this deployment.
+3. Runs `npm install` + `npm run build` inside a `node:lts` container.
+4. Mirrors the built `build/` output into the web root with `rsync`.
+5. Regenerates the landing page listing all deployed projects.
+   :::
+
+## Prerequisites
+
+- **Docker** installed and running on the host.
+- **git** and **rsync** on the host.
+- Write access to the deployment directory (the script uses `sudo`).
+- Outbound network access from the container to the npm registry. This host
+  reaches the internet through a resolver passed explicitly as `--dns 8.8.8.8`;
+  adjust that value if your network requires a different one.
+
+The build runs in the Debian-based `node:lts` image, which already bundles git,
+Python 3, and a C/C++ toolchain — so Docusaurus's git lookups and any native npm
+modules (e.g. `better-sqlite3`, which compiles with `node-gyp`) work with no
+extra setup.
+
+## Configuration
+
+Only `PJT_NAME` normally changes between projects. Everything else is derived
+from it, except `SITE_URL`, which is fixed to the shared domain.
+
+| Variable   | Meaning                                             | Value                                     |
+| ---------- | --------------------------------------------------- | ----------------------------------------- |
+| `PJT_NAME` | Project / repo name; drives all the paths below     | `iiot-docs`                               |
+| `REPO_URL` | Git repository to build                             | `https://github.com/ruseleredu/$PJT_NAME` |
+| `SITE_URL` | Public domain, no trailing slash (shared)           | `https://docs.mini.pc`                    |
+| `BASE_URL` | Sub-path the site is served from, with both slashes | `/$PJT_NAME/`                             |
+| `DEST`     | Directory the static files are copied to            | `/var/www/html/docs/$PJT_NAME`            |
+| `WORKDIR`  | Persistent working clone on the host                | `/opt/docusaurus-builder/$PJT_NAME`       |
+
+:::danger[`BASE_URL` must match the deployed path]
+`baseUrl` is the sub-path the browser requests assets from. If it doesn't line
+up with where the files actually live (both the `DEST` copy path **and** your
+nginx/apache location), the page will load but all CSS and JS will 404 and the
+site renders unstyled. Because `BASE_URL`, `DEST`, and the nginx location are
+all derived from `PJT_NAME`, they stay in sync automatically — but if you
+override any of them by hand, override all of them.
+:::
+
+:::note[One domain, many projects]
+`SITE_URL` stays fixed while everything else keys off `PJT_NAME`. This assumes
+every project shares `docs.mini.pc` and is distinguished by its `baseUrl`
+sub-path. If a project ever needs its own domain, move `SITE_URL` into the
+per-project variables too.
+:::
+
+## The script
+
+```bash title="docusaurus-deploy.sh"
+#!/bin/sh
+set -e
+PJT_NAME="iiot-docs"
+REPO_URL="https://github.com/ruseleredu/$PJT_NAME"
+SITE_URL="https://docs.mini.pc"
+BASE_URL="/$PJT_NAME/"
+DEST="/var/www/html/docs/$PJT_NAME"
+WORKDIR="/opt/docusaurus-builder/$PJT_NAME"
+
+# Update in place instead of re-cloning
+if [ -d "$WORKDIR/.git" ]; then
+  git -C "$WORKDIR" fetch origin
+  git -C "$WORKDIR" reset --hard @{u}        # discard last run's sed edits, match remote
+else
+  git clone "$REPO_URL" "$WORKDIR"
+fi
+cd "$WORKDIR"
+
+# Detect config extension, then re-apply edits (reset --hard wiped them)
+CONFIG=$(ls docusaurus.config.ts docusaurus.config.js 2>/dev/null | head -n1)
+sed -i "s|url:.*|url: '${SITE_URL}',|g" "$CONFIG"
+sed -i "s|baseUrl:.*|baseUrl: '${BASE_URL}',|g" "$CONFIG"
+grep -nE "^\s*(url|baseUrl):" "$CONFIG"     # sanity check before building
+
+# node_modules lives in $WORKDIR and persists; npm install is incremental.
+# node:lts (Debian) ships git + Python + toolchain, so native modules compile.
+docker run --rm --dns 8.8.8.8 -v "$PWD":/app -w /app node:lts \
+  sh -c "npm install && npm run build"
+
+sudo mkdir -p "$DEST"
+sudo rsync -a --delete build/ "$DEST"/
+
+# Refresh the landing page that lists every deployed project
+sudo DOCS_ROOT=/var/www/html/docs SITE_TITLE="docs.mini.pc" \
+  sh /opt/docusaurus-builder/generate-index.sh
+```
+
+:::note[Why `node:lts` and not `node:lts-alpine`]
+The Alpine image is ~300 MB smaller but ships neither git nor a build toolchain.
+That means installing git for Docusaurus's "last updated" lookups **and**
+compiling any native module from source — extra moving parts that caused DNS and
+`node-gyp`/Python failures earlier. Debian `node:lts` bundles all of it, so the
+run line needs no `apk add` and no custom image. Docker caches the image after
+the first pull, so it's downloaded only once.
+:::
+
+## Deploy
+
+Place the script somewhere convenient, make it executable once, then run it for
+every update:
+
+```bash
+chmod +x docusaurus-deploy.sh   # first time only
+./docusaurus-deploy.sh
+```
+
+To deploy a different project, change one line:
+
+```bash
+PJT_NAME="other-project"
+```
+
+The `grep` line prints the two config values it just set — confirm they read as
+expected before trusting the build:
+
+```text
+22:  url: 'https://docs.mini.pc',
+25:  baseUrl: '/iiot-docs/',
+```
+
+## How the config gets rewritten
+
+The script auto-detects whether the repo uses `docusaurus.config.ts` or
+`docusaurus.config.js` and edits whichever it finds:
+
+```sh
+CONFIG=$(ls docusaurus.config.ts docusaurus.config.js 2>/dev/null | head -n1)
+```
+
+The two `sed` lines then replace everything after `url:` / `baseUrl:` up to the
+end of the line. This works because Docusaurus's other URL-ish fields
+(`editUrl`, `favicon`) don't start with a lowercase `url:`, so they're left
+alone. Two things to keep in mind:
+
+- The replacement wipes any trailing comment on those lines.
+- `sed` here uses `|` as the delimiter, so a `SITE_URL`/`BASE_URL` containing a
+  literal `|` or `&` would break it. Not a concern for these values.
+
+If `CONFIG` ever comes back empty (neither file found), the `grep` sanity check
+fails immediately under `set -e`, stopping the run before a bad build.
+
+## The build container
+
+The build runs in the stock `node:lts` image with no customization — no
+`docker build`, no Dockerfile, no image guard. Because the image is used as-is,
+Docker pulls it once and caches it; every later run reuses that cached image.
+
+`node:lts` is Debian-based and built on `buildpack-deps`, so it already contains
+everything the build needs: git (for Docusaurus's last-update lookups), Python 3,
+`make`, and `g++` (for compiling native npm modules). Nothing is installed at
+run time, which removes the in-container `apk add` step — and with it the
+DNS-at-build-time failures the Alpine approach was prone to.
+
+:::tip[Keeping the image current]
+`node:lts` tracks the current LTS line but a locally cached copy won't update on
+its own. Pull a fresh one when you want the latest patch:
+
+```bash
+docker pull node:lts
+```
+
+Pin a specific version instead (e.g. `node:22-bookworm`) if you need
+reproducible builds across machines.
+:::
+
+## Speed: why updates are fast
+
+The script is built to avoid redoing work on every run.
+
+- **Persistent clone.** After the first run, `git fetch` + `git reset --hard`
+  pull only new commits instead of re-downloading the whole repo.
+- **`npm install`, not `npm ci`.** `npm ci` deletes `node_modules` and
+  reinstalls all ~1,460 packages every time (~33 s). Because the clone persists,
+  `node_modules` survives, and `npm install` against an unchanged lockfile is
+  nearly a no-op. It still reconciles correctly when the lockfile changes
+  upstream.
+- **Cached image, no per-run setup.** `node:lts` is pulled once and reused, and
+  since it already has git and the build toolchain, there's no in-container
+  install on any run.
+- **`rsync --delete`, not `cp -r`.** rsync copies only changed files and removes
+  files deleted upstream, keeping `DEST` an exact mirror. Plain `cp` would leave
+  stale, deleted pages behind forever.
+- The persistent `.docusaurus/` cache also shaves time off the build step.
+
+A routine update becomes roughly "fetch new commits + build" instead of a full
+clone, install, and copy.
+
+## Troubleshooting
+
+:::warning[`destination path` already exists]
+An earlier version re-cloned into a fixed directory. The current script updates
+a persistent `WORKDIR` instead, so this shouldn't recur. If you still see it,
+the working directory exists but has no `.git` — remove it and rerun:
+`rm -rf "$WORKDIR" && ./docusaurus-deploy.sh`.
+:::
+
+:::warning[`This Docusaurus site is outside any Git worktree`]
+The site has the "last updated" feature enabled, so Docusaurus runs `git log`
+on each `.mdx`. This fails only if the build image has no git binary —
+`node:lts-alpine` was the culprit. `node:lts` (Debian) includes git, so the
+error shouldn't appear. If you deliberately switch back to an image without git,
+either install it in the container or disable the feature in the docs preset
+options:
+
+```js
+showLastUpdateTime: false,
+showLastUpdateAuthor: false,
+```
+
+:::
+
+:::warning[`gyp ERR! find Python` / native module fails to build]
+A dependency ships a native addon (e.g. `better-sqlite3`) with no prebuilt
+binary for this platform, so npm compiles it with `node-gyp`, which needs Python
+and a C/C++ toolchain. `node:lts` includes both, so this builds cleanly. It only
+surfaces on a stripped-down image like `node:lts-alpine`; if you must use Alpine,
+add the toolchain with `apk add --no-cache python3 make g++`.
+:::
+
+:::warning[`git (no such package)` / `DNS: transient error`]
+Alpine-only: `apk` couldn't reach its package mirror to install git or the
+toolchain. Switching to `node:lts` removes the `apk` step entirely, so this can't
+occur. If you keep an Alpine-based image and hit it, `--dns 8.8.8.8` helps
+`docker run`; a `docker build` step needs the DNS fix at the daemon level.
+:::
+
+## Landing page (project index)
+
+With several projects deployed side by side under `/var/www/html/docs/`, a
+landing page at the root ties them together. `generate-index.sh` scans that
+directory and writes an `index.html` listing every project as a Bootstrap 5
+card. The deploy script calls it as its last step, so the index refreshes on
+every deploy.
+
+A plain static page can't enumerate folders on its own — a browser has no
+filesystem access — which is why this is a generator run on the host rather than
+client-side JavaScript. It's also why the alternative, nginx's `autoindex`, is
+avoided: it exposes a raw file listing rather than a curated page.
+
+```bash title="generate-index.sh (excerpt)"
+DOCS_ROOT="${DOCS_ROOT:-/var/www/html/docs}"   # where project subfolders live
+OUTPUT="${OUTPUT:-$DOCS_ROOT/index.html}"       # landing page to write
+LINK_PREFIX="${LINK_PREFIX:-/}"                 # projects are served at ${LINK_PREFIX}<name>/
+SITE_TITLE="${SITE_TITLE:-Documentation}"
+BOOTSTRAP_CSS="${BOOTSTRAP_CSS:-https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css}"
+
+extract() {                                     # text inside an element with a given class
+  grep -oP "$2"'[^>]*>\K[^<]*' "$1" 2>/dev/null | head -n1
+}
+
+for dir in "$DOCS_ROOT"/*/; do
+  [ -f "${dir}index.html" ] || continue         # skip folders with no built site
+  name=$(basename "$dir")
+  title=$(extract "${dir}index.html" 'hero__title')
+  subtitle=$(extract "${dir}index.html" 'hero__subtitle')
+  [ -n "$title" ] || title="$name"              # fall back to folder name
+  # ...emit a Bootstrap card linking to ${LINK_PREFIX}${name}/
+done
+```
+
+Everything is overridable by environment variable, so no edits are needed to
+retarget it:
+
+```bash
+DOCS_ROOT=/var/www/html/docs OUTPUT=/var/www/html/docs/index.html \
+SITE_TITLE="docs.mini.pc" sh generate-index.sh
+```
+
+### Card titles come from each site's hero
+
+Instead of showing folder names, the generator reads each project's built
+homepage and pulls the text out of its `hero__title` and `hero__subtitle`
+elements — the heading and tagline from the Docusaurus landing page. The
+`extract()` helper matches the class, skips the rest of the tag, and captures up
+to the next `<`, so it copes with minified output: unquoted attributes
+(`class=hero__title`), extra classes, and even a missing closing `</p>`. If a
+homepage has no hero, the card falls back to the (prettified) folder name.
+
+:::note[Needs GNU grep]
+`extract()` uses `grep -oP` (PCRE), which is GNU grep only. That's fine on the
+host, which is Debian-based. Don't run this script inside the Alpine container,
+whose BusyBox grep has no `-P`.
+:::
+
+:::danger[Link path must match `baseUrl`]
+Cards link to `/<name>/` (root-relative), because each project's `baseUrl` is
+`/$PJT_NAME/` and the nginx `alias` serves the site at `docs.mini.pc/<name>/` —
+the `/docs/` in the filesystem path is not part of the URL. If you ever serve
+projects under a `/docs/` URL prefix instead, set `LINK_PREFIX=/docs/` so the
+links keep matching.
+:::
+
+:::warning[Bootstrap loads from a CDN]
+The generator itself never touches the network, but the page it writes pulls
+Bootstrap from `cdn.jsdelivr.net` in the viewer's browser. If `docs.mini.pc` is
+a LAN box whose users have no internet, the stylesheet won't load and the page
+renders unstyled. Vendor Bootstrap locally once and point the script at the copy:
+
+```bash
+# one-time, on a machine with internet:
+curl -L -o /var/www/html/docs/bootstrap.min.css \
+  https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css
+
+# then generate against the local file:
+BOOTSTRAP_CSS=/bootstrap.min.css sh generate-index.sh
+```
+
+:::
+
+## Serving the site (nginx)
+
+The static files at `DEST` need a web server pointing at them. A minimal nginx
+config that serves both a project (matching `BASE_URL = /iiot-docs/` and
+`DEST = /var/www/html/docs/iiot-docs`) and the generated landing page at `/`:
+
+```nginx
+server {
+    listen 80;
+    server_name docs.mini.pc;
+
+    # Landing page: /var/www/html/docs/index.html served at "/"
+    location = / {
+        root /var/www/html/docs;
+        try_files /index.html =404;
+    }
+
+    # One block per project (all derived from PJT_NAME)
+    location /iiot-docs/ {
+        alias /var/www/html/docs/iiot-docs/;
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+The `alias` path, the `location` prefix, and `BASE_URL` all have to agree —
+they're all functions of `PJT_NAME`, so keep them consistent when you add a new
+project. The landing page links to those same `/<name>/` paths, so a project
+only appears (and resolves) once its `location` block is in place.
