@@ -1,5 +1,5 @@
 ---
-id: build-and-deploy
+id: build-and-deploy-fav
 title: Build & Deploy the Docs Site
 sidebar_label: Build & Deploy
 description: How to build a Docusaurus site in a Node container and deploy the static output to the web root, parameterized by project name.
@@ -263,6 +263,7 @@ OUTPUT="${OUTPUT:-$DOCS_ROOT/index.html}"       # landing page to write
 LINK_PREFIX="${LINK_PREFIX:-/}"                 # projects are served at ${LINK_PREFIX}<name>/
 SITE_TITLE="${SITE_TITLE:-Documentation}"
 BOOTSTRAP_CSS="${BOOTSTRAP_CSS:-https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css}"
+FAVICON="${FAVICON:-https://raw.githubusercontent.com/facebook/docusaurus/refs/heads/main/examples/classic/static/img/favicon.ico}"
 
 extract() {                                     # text inside an element with a given class
   grep -oP "$2"'[^>]*>\K[^<]*' "$1" 2>/dev/null | head -n1
@@ -310,19 +311,22 @@ projects under a `/docs/` URL prefix instead, set `LINK_PREFIX=/docs/` so the
 links keep matching.
 :::
 
-:::warning[Bootstrap loads from a CDN]
+:::warning[Bootstrap and favicon load from the network]
 The generator itself never touches the network, but the page it writes pulls
-Bootstrap from `cdn.jsdelivr.net` in the viewer's browser. If `docs.mini.pc` is
-a LAN box whose users have no internet, the stylesheet won't load and the page
-renders unstyled. Vendor Bootstrap locally once and point the script at the copy:
+Bootstrap from `cdn.jsdelivr.net` and the favicon from `raw.githubusercontent.com`
+in the viewer's browser. If `docs.mini.pc` is a LAN box whose users have no
+internet, neither will load — the page renders unstyled and without an icon.
+Vendor both locally once and point the script at the copies:
 
 ```bash
 # one-time, on a machine with internet:
 curl -L -o /var/www/html/docs/bootstrap.min.css \
   https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css
+curl -L -o /var/www/html/docs/favicon.ico \
+  https://raw.githubusercontent.com/facebook/docusaurus/refs/heads/main/examples/classic/static/img/favicon.ico
 
-# then generate against the local file:
-BOOTSTRAP_CSS=/bootstrap.min.css sh generate-index.sh
+# then generate against the local files:
+BOOTSTRAP_CSS=/bootstrap.min.css FAVICON=/favicon.ico sh generate-index.sh
 ```
 
 :::
@@ -357,3 +361,95 @@ The `alias` path, the `location` prefix, and `BASE_URL` all have to agree —
 they're all functions of `PJT_NAME`, so keep them consistent when you add a new
 project. The landing page links to those same `/<name>/` paths, so a project
 only appears (and resolves) once its `location` block is in place.
+
+## script
+
+```sh
+#!/bin/sh
+set -e
+
+# Scans DOCS_ROOT for project subfolders (those containing an index.html),
+# pulls each site's hero title/subtitle out of its built homepage, and writes
+# a Bootstrap 5 card grid listing them.
+DOCS_ROOT="${DOCS_ROOT:-/var/www/html/docs}"   # where project subfolders live
+OUTPUT="${OUTPUT:-$DOCS_ROOT/index.html}"       # landing page to write
+LINK_PREFIX="${LINK_PREFIX:-/}"                 # projects are served at ${LINK_PREFIX}<name>/
+SITE_TITLE="${SITE_TITLE:-Documentation}"
+BOOTSTRAP_CSS="${BOOTSTRAP_CSS:-https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css}"
+FAVICON="${FAVICON:-https://raw.githubusercontent.com/facebook/docusaurus/refs/heads/main/examples/classic/static/img/favicon.ico}"
+
+# Pull the text inside an element carrying a given class. Handles quoted or
+# unquoted attributes, extra classes, and a missing close tag (stops at next <).
+# Needs GNU grep (-P). Returns empty if not found.
+extract() {
+  grep -oP "$2"'[^>]*>\K[^<]*' "$1" 2>/dev/null | head -n1
+}
+
+prettify() {
+  echo "$1" | tr '_-' '  ' \
+    | awk '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}}1'
+}
+
+# Header (quoted heredoc: nothing expands here; placeholders filled by sed after)
+cat > "$OUTPUT" <<'HEAD'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__SITE_TITLE__</title>
+<link rel="icon" href="__FAVICON__">
+<link href="__BOOTSTRAP_CSS__" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+<main class="container py-5">
+<h1 class="mb-1">__SITE_TITLE__</h1>
+<p class="text-body-secondary mb-4">Available documentation sites</p>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+HEAD
+
+found=0
+for dir in "$DOCS_ROOT"/*/; do
+  [ -f "${dir}index.html" ] || continue           # skip folders with no built site
+  name=$(basename "$dir")
+
+  title=$(extract "${dir}index.html" 'hero__title')
+  subtitle=$(extract "${dir}index.html" 'hero__subtitle')
+  [ -n "$title" ] || title=$(prettify "$name")     # fall back to folder name
+
+  # %s args keep arbitrary title/subtitle text out of the format string
+  {
+    printf '  <div class="col">\n'
+    printf '    <div class="card h-100 shadow-sm">\n'
+    printf '      <div class="card-body">\n'
+    printf '        <h5 class="card-title">%s</h5>\n' "$title"
+    printf '        <p class="card-text text-body-secondary">%s</p>\n' "$subtitle"
+    printf '      </div>\n'
+    printf '      <div class="card-footer bg-transparent d-flex align-items-center">\n'
+    printf '        <a href="%s%s/" class="btn btn-primary btn-sm stretched-link">Abrir</a>\n' "$LINK_PREFIX" "$name"
+    printf '        <span class="ms-auto small text-body-secondary font-monospace">%s%s/</span>\n' "$LINK_PREFIX" "$name"
+    printf '      </div>\n'
+    printf '    </div>\n'
+    printf '  </div>\n'
+  } >> "$OUTPUT"
+  found=$((found + 1))
+done
+
+if [ "$found" -eq 0 ]; then
+  printf '  <div class="col"><div class="alert alert-secondary mb-0">No documentation sites deployed yet.</div></div>\n' >> "$OUTPUT"
+fi
+
+cat >> "$OUTPUT" <<TAIL
+</div>
+<footer class="text-body-secondary small mt-5">Generated $(date -u '+%Y-%m-%d %H:%M UTC') &middot; ${found} site(s)</footer>
+</main>
+<script>document.documentElement.setAttribute('data-bs-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+</body>
+</html>
+TAIL
+
+# Fill placeholders kept out of the heredoc (avoids quoting/escaping headaches)
+sed -i "s|__SITE_TITLE__|${SITE_TITLE}|g; s|__BOOTSTRAP_CSS__|${BOOTSTRAP_CSS}|g; s|__FAVICON__|${FAVICON}|g" "$OUTPUT"
+
+echo "Wrote $OUTPUT (${found} site(s))"
+```
