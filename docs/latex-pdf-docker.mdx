@@ -1,0 +1,114 @@
+---
+title: Compilar LaTeX com Docker
+description: Guia passo a passo para instalar Docker e compilar arquivos .tex usando a imagem texlive/texlive.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Compilar LaTeX com Docker
+
+Este guia mostra como instalar o Docker e utilizar a imagem **texlive/texlive** para compilar arquivos `.tex` em PDF.  
+É útil para manter um ambiente consistente sem precisar instalar o TeX Live diretamente na sua máquina.
+
+---
+
+## 🐳 Instalar Docker
+
+1. Acesse o site oficial do Docker.
+2. Baixe e instale o **Docker Desktop** para o seu sistema operacional (Windows, macOS ou Linux).
+3. Verifique se a instalação foi concluída com sucesso:
+
+```bash
+docker --version
+```
+
+Se aparecer a versão instalada, o Docker está pronto para uso.
+
+---
+
+## 📦 Baixar a imagem TeX Live
+
+Execute o comando abaixo para baixar a imagem oficial:
+
+```bash
+docker pull texlive/texlive:latest
+```
+
+Isso irá baixar a versão mais recente do TeX Live.
+
+---
+
+## 📝 Criar um arquivo `main.tex`
+
+Crie um arquivo chamado `main.tex` com o seguinte conteúdo de teste:
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\title{Teste com Docker + TeX Live}
+\author{Seu Nome}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introdução}
+Este é um documento de teste para verificar a compilação com Docker.
+
+\section{Equação}
+Aqui está uma equação simples:
+\[
+E = mc^2
+\]
+
+\end{document}
+```
+
+---
+
+## ▶️ Compilar o arquivo com Docker
+
+Agora, no mesmo diretório onde está o `main.tex`, execute:
+
+```bash
+docker run --rm \
+  -v "$(pwd)":/data \
+  -w /data \
+  texlive/texlive:latest \
+  pdflatex main.tex
+```
+
+- `-v "$(pwd)":/data` → monta o diretório atual dentro do container.
+- `-w /data` → define o diretório de trabalho.
+- `pdflatex main.tex` → compila o arquivo LaTeX.
+
+Após a execução, o arquivo `main.pdf` será gerado no seu diretório local.
+
+---
+
+## ✅ Resultado
+
+Se tudo estiver correto, você verá o PDF `main.pdf` criado.
+Esse processo garante que todos os colaboradores usem a mesma versão do TeX Live, evitando problemas de compatibilidade.
+
+---
+
+<Tabs>
+  <TabItem value="pdflatex" label="pdflatex">
+    ```bash 
+    docker run --rm -v "$(pwd)":/data -w /data texlive/texlive:latest
+    pdflatex main.tex 
+    ```
+  </TabItem>
+
+  <TabItem value="latexmk" label="latexmk">
+    ```bash 
+    docker run --rm -v "$(pwd)":/data -w /data texlive/texlive:latest
+    latexmk -pdf main.tex 
+    ```
+  </TabItem>
+</Tabs>
+
+---
