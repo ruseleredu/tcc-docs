@@ -85,7 +85,7 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      title: 'TCC/DAELT/UTFPR',
       logo: {
         alt: 'My Site Logo',
         src: 'img/logo.svg',
@@ -96,6 +96,18 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: [
+        // https://prismjs.com/#supported-languages
+        "apacheconf",
+        "nginx",
+        "bash",
+        "matlab",
+        "powershell",
+        "ini",
+        "latex",
+        "php",
+        "java",
+      ],
     },
   } satisfies Preset.ThemeConfig,
 };
