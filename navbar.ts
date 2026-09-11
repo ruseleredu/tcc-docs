@@ -7,6 +7,11 @@ const navbarItems: NavbarItem[] = [
         position: "left",
         label: "Tutorial",
     },
+    {
+        label: 'Engenharia',
+        to: 'pathname:///engenharia/index.html', // Maps to static/engenharia/index.html  to: 'pathname:///engenharia/index.html', // Link to a page in your API docs
+        position: 'left',
+    },
     { to: "/blog", label: "Blog", position: "left" },
     {
         href: "https://github.com/ruseleredu/tcc-docs",
