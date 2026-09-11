@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>TCC/DAELT/UTFPR - Engenharia</title>
+    <base href="https://nupet.daelt.ct.utfpr.edu.br/tcc/">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/meus-estilos.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .header {
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+        }
+        .navbar {
+            background-color: #002147;
+        }
+        .navbar-nav .nav-link {
+            color: white !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background-color:#3b3eff;
+        }
+        .content {
+            margin: 20px;
+        }
+        .container-content {
+            text-align: center;
+            position:relative;
+            margin: 2vw;
+            width:80vw;         
+            min-height: 680px;
+            
+        }
+
+        .card {
+            text-align: left;
+            margin-bottom: 20px;
+
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #002147;
+            color: white;
+        }
+        .footer a {
+            color: #ffcc00;
+        }
+        .footer a:hover {
+            color: #e6b800;
+        }
+        .accordion {
+          background-color: #eee;
+          color: #444;
+          cursor: pointer;
+          padding: 18px;
+          width: 100%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 18px;
+          transition: 0.4s;
+        }
+
+        .accordion:hover {
+          background-color: #ccc;
+        }
+
+        .accordion:after {
+          content: 'B';
+          color: #777;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+        }
+
+        .panel {
+          padding: 0 18px;
+          background-color: white;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <a href="https://utfpr.curitiba.br/daelt/" class="custom-logo-link" rel="home" aria-current="page"><img width="850" height="227" src="./DAELT-CT – Departamento Acadêmico de Eletrotécnica_files/cropped-header_utfpr.png" class="custom-logo" alt="DAELT-CT" decoding="async" fetchpriority="high" srcset="https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr.png 850w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-300x80.png 300w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-768x205.png 768w" sizes="(max-width: 850px) 100vw, 850px"></a>                  
+</div>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+       
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <a class="active" href="https://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/index.html"><i class="fa fa-fw fa-home"></i><b>TCC</b></a>
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="engenharia/metodologia.html"><b>Metodologia Aplicada ao TCC </b></a></li>
+                <li class="nav-item"><a class="nav-link" href="engenharia/tcc1.html"><b>Trabalho de Conclusão de Curso 1 (TCC 1)</b></a></li>
+		<li class="nav-item"><a class="nav-link" href="engenharia/tcc2.html"><b>Trabalho de Conclusão de Curso 2 (TCC 2)</b></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- ########## Nova bloco de informações: Lista de professores ########## --> 
+<div class="title">Lista de grupos do DAELT</a></div>
+<div>
+
+<p>Abaixo segue a lista de grupos, e seus respectivos líderes. Estes professores receberão as propostas de Metodologia Aplicada ao TCC e as distribuirão entre os membros de seus grupos para avaliação.</p>
+<table class="tabelas-professor">
+
+<tr>
+	<th>Grupo</th>
+	<th>Líder [Código]</th>
+</tr>
+
+<tr>
+	<td>AUTOMAÇÃO</td>	<td>Elder Oroski [171]</td></tr>
+<tr>
+	<td>CONTROLE</td>	<td>Elder Oroski [171]</td></tr>
+<tr>
+	<td>ELETRÔNICA</td>	<td>Eduardo Félix Ribeiro Romaneli [31]</td></tr>
+<tr>
+	<td>GESTÃO</td>	<td>Roberto Candido [75]</td></tr>
+<tr>
+	<td>INSTALAÇÕES ELÉTRICAS</td>	<td>Bruno Akihiro Tanno Iamamura [193]</td></tr>
+<tr>
+	<td>MÁQUINAS ELÉTRICAS</td>	<td>Bruno Akihiro Tanno Iamamura [193]</td></tr>
+<tr>
+	<td>SISTEMAS DE POTÊNCIA</td>	<td>Fabiano Gustavo Silveira Magrin [210]</td></tr>
+<tr>
+	<td>ELETRICIDADE E MAGNETISMO</td>	<td>Juan Camilo Castellanos Rodriguez [299]</td></tr>
+</table>
+
+</div>
+
+
+<!-- ########## Nova bloco de informações: Lista de professores ########## --> 
+<div class="title">Lista de professores do DAELT</a></div>
+<div>
+<p>Abaixo segue a lista de professores e o grupo a que pertence.</p>
+<table class="tabelas-professor">
+	<col width="50%" />
+	<col width="50%" />
+
+<tr>
+	<th>Professor [Código]</th>
+	<th>Grupo</th>
+</tr>
+
+<tr>
+	<td>Adriano Ruseler [201]<br /><span class = "visual-emails">ruseler [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Alceu André Badin [1]<br /><span class = "visual-emails">badin [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Alexandre José Tuoto Silveira Mello [151]<br /><span class = "visual-emails">ajmello [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Álvaro Augusto de Almeida [3]<br /><span class = "visual-emails">alvaroaugusto [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Álvaro Peixoto de Alencar Neto [4]<br /><span class = "visual-emails">alencar [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Amauri Amorin Assef [94]<br /><span class = "visual-emails">amauriassef [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Ana Rita Villela Costa [229]<br /><span class = "visual-emails">anaritavc [at] uol [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+<tr>
+	<td>Andrea Lucia Costa [5]<br /><span class = "visual-emails">andreacosta [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Annemarlen G. Castagna [6]<br /><span class = "visual-emails">gehrke [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Antonio Carlos Cassilha [7]<br /><span class = "visual-emails">cassilha [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">antonio [at] cassilha [dot] com</span></td>
+	<td><ul>
+		<li>GESTÃO</li>
+	</ul></td>
+<tr>
+	<td>Antonio Carlos Pinho [8]<br /><span class = "visual-emails">acpinho [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+<tr>
+	<td>Antonio Ivan Bastos Sobrinho [9]<br /><span class = "visual-emails">ivan [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">aibastos [at] terra [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Antonio Luiz Merlin [10]<br /><span class = "visual-emails">merlin [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Ayres Francisco da Silva Soria [11]<br /><span class = "visual-emails">soria [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">ayres_soria [at] uol [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Belmiro Wolski [13]<br /><span class = "visual-emails">belmirow [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Carlo Alessandro Zanetti Pece [14]<br /><span class = "visual-emails">carlopece [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Carlos Alberto Dallabona [15]<br /><span class = "visual-emails">dallabona [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Carlos Eduardo Ferrante do Amaral [95]<br /><span class = "visual-emails">camaral [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Carlos Henrique Karam Salata [16]<br /><span class = "visual-emails">salata [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Carlos Henrique Mariano [17]<br /><span class = "visual-emails">mariano [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">chmariano22 [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Celia Cristina Bojarczuk [18]<br /><span class = "visual-emails">celiacristina [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Celso Fabrício de Melo Júnior [19]<br /><span class = "visual-emails">melo [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">de.melo [at] onda [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Cesar Eduardo F. Castañeda [20]<br /><span class = "visual-emails">figueroa [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Claudio Martin [21]<br /><span class = "visual-emails">martin [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Clider Adriane de Sousa Silva [22]<br /><span class = "visual-emails">clider [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Clovis Ronaldo da Costa Bento [333]<br /><span class = "visual-emails">clovisbento [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+<tr>
+	<td>Cristiano Quevedo Andrea [23]<br /><span class = "visual-emails">quevedo [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">quevedo_unesp [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Dalcio Roberto dos Reis [24]<br /><span class = "visual-emails">dalcio [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Daniel Balieiro Silva [25]<br /><span class = "visual-emails">balieiro [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Daniel Flores Cortez [162]<br /><span class = "visual-emails">danielcortez [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Daniel Gustavo Castellain [233]<br /><span class = "visual-emails">castellain [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Daniel Junghans [26]<br /><span class = "visual-emails">junghans [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">xuxudamalmita [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Delvanei Gomes Bandeira Jr. [247]<br /><span class = "visual-emails">delvanei [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Diego Issicaba [152]<br /><span class = "visual-emails">issicaba.workstation [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Domingos Leite Lima Filho [27]<br /><span class = "visual-emails">domingos [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Ednilson Soares Maciel [28]<br /><span class = "visual-emails">ednilsonmaciel [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">ednilsonmaciel [at] yahoo [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Edson Pinheiro de Lima [29]<br /><span class = "visual-emails">pinheiro [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">e.pinheiro [at] pucpr [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Eduardo de Freitas Rocha Loures [30]<br /><span class = "visual-emails">loures [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">loures.utfpr [at] yahoo [dot] fr</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Eduardo Félix Ribeiro Romaneli [31]<br /><span class = "visual-emails">felix [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">eduardo.romaneli [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Eduil Simiano Nascimento [142]<br /><span class = "visual-emails">eduiln [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Elder Oroski [171]<br /><span class = "visual-emails">oroski [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Elisabete Nakoneczny Moraes [32]<br /><span class = "visual-emails">elisanm [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Eloi Martins [33]<br /><span class = "visual-emails">eloimartins [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Eloi Rufato Junior [34]<br /><span class = "visual-emails">elrufato [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">elrufato [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Emerson Rigoni [35]<br /><span class = "visual-emails">rigoni [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">emerson [at] rigoni [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Fabiano Gustavo Silveira Magrin [210]<br /><span class = "visual-emails">magrin [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>FÁBIO PIRES ITTURRIET [362]<br /><span class = "visual-emails">fabioitturriet [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Faimara do Rocio Strauhs [36]<br /><span class = "visual-emails">faimara [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Gelson Roberto Mara [37]<br /><span class = "visual-emails">gelsonmara [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Geraldo Cavalin [38]<br /><span class = "visual-emails">cavalin [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Gerson Máximo Tiepolo [39]<br /><span class = "visual-emails">tiepolo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Gilberto Manoel Alves [40]<br /><span class = "visual-emails">galves [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">gilbertomanoel [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Gilberto Wolff [41]<br /><span class = "visual-emails">wolff [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">gilwolff [at] emc [dot] ufsc [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Glauber Gomes de Oliveira Brante [137]<br /><span class = "visual-emails">gbrante [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Guilherme Luiz Moritz [125]<br /><span class = "visual-emails">moritz [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">guilherme [at] eletrica [dot] eng [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Hamilton Born [42]<br /><span class = "visual-emails">hborn [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Hebert Douglas Pereira [338]<br /><span class = "visual-emails">hdpereira [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">hdpereira [at] professores [dot] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+<tr>
+	<td>Ismael Chiamenti [126]<br /><span class = "visual-emails">chiamenti [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">ismael.utfpr [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Ivan Born [43]<br /><span class = "visual-emails">born.br [at] brturbo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Jaime Favretto [44]<br /><span class = "visual-emails">favretto [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Jair Urbanetz Junior [45]<br /><span class = "visual-emails">urbanetz [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Jean Carlos Cardozo da Silva [117]<br /><span class = "visual-emails">jeancardozo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>João Israel Bernardo [46]<br /><span class = "visual-emails">bernardo [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">jidata [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Joaquim Eloir Rocha [47]<br /><span class = "visual-emails">joaquimrocha [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Jorge Assade Leludak [48]<br /><span class = "visual-emails">assade [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>José Alberto Coraiola [49]<br /><span class = "visual-emails">coraiola [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>José da Silva Maia [50]<br /><span class = "visual-emails">jsilvamaia [at] uol [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Juan Camilo Castellanos Rodriguez [299]<br /><span class = "visual-emails">juanc [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Júlio Cesar Nitsch [52]<br /><span class = "visual-emails">nitsch [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">jcnitsch [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Juvenal Akita [53]<br /><span class = "visual-emails">akita [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">jakita45 [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Lilian Moreira Garcia [54]<br /><span class = "visual-emails">liliangarcia [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">lilianutfpr [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Lucas Cicarelli [165]<br /><span class = "visual-emails">lcicarelli [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+<tr>
+	<td>Lucas Costa Ciarelli [194]<br /><span class = "visual-emails">lcciarelli [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Lucas Pioli Rehbein Kurten Ihlenfeld [334]<br /><span class = "visual-emails">lucasihlenfeld [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Luciana Maria Kalinowski [55]<br /><span class = "visual-emails">lucianakalinow [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Luciane Brandalise [56]<br /><span class = "visual-emails">brandalise [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">lucianeb [at] creapr [dot] org [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Luiz Amilton Pepplow [57]<br /><span class = "visual-emails">luizpepplow [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Luiz Erley Schafranski [58]<br /><span class = "visual-emails">erley [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Luiz Fernando Colla [59]<br /><span class = "visual-emails">luizcolla [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">luiz.colla [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Luiz Gustavo Trevisan [60]<br /><span class = "visual-emails">lgt [at] lgt [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Marcelo Barcik [61]<br /><span class = "visual-emails">barcik [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">mbarcik [at] mail [dot] sul [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Marcelo de Oliveira Rosa [62]<br /><span class = "visual-emails">mrosa [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">mo-rosa [at] uol [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Marcelo Rodrigues [63]<br /><span class = "visual-emails">marcelor [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Marcio Aparecido Batista [64]<br /><span class = "visual-emails">marciobatista [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Marco Antonio Busetti de Paula [65]<br /><span class = "visual-emails">busetti [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">marco.busetti [at] pucpr [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Marco José da Silva [66]<br /><span class = "visual-emails">mdasilva [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">m.dasilva [at] ieee [dot] org</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Maria de Fátima R. R. Cabreira [67]<br /><span class = "visual-emails">fatimaraia [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Mariana Antônia Aguiar Furucho [154]<br /><span class = "visual-emails">mariana.aguiar [at] marianrogers [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Miguel Antonio Sovierzoski [272]<br /><span class = "visual-emails">miguelaso [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Miguel Olandoski Neto [68]<br /><span class = "visual-emails">miguelneto [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">msea [at] marsul [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Narco Afonso Ravazzoli Maciejewski [337]<br /><span class = "visual-emails">maciejewski [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+<tr>
+	<td>Nastasha Salame da Silva [173]<br /><span class = "visual-emails">nastasha [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Nataniel G. de Oliveira [69]<br /><span class = "visual-emails">natanieloliveir [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">oliveira [at] onda [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Ney José A. Kloster [70]<br /><span class = "visual-emails">kloster [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">ney.kloster [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Ohara Kerusauskas Rayel [147]<br /><span class = "visual-emails">ohara [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">ohara [at] eletrica [dot] eng [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Patrício Enrique Muñoz Rojas [71]<br /><span class = "visual-emails">munoz [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">patricio [at] lactec [dot] org [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Paulo Apelles Camboim de Oliveira [236]<br /><span class = "visual-emails">pauloapelles [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Paulo Cícero Fritzen [115]<br /><span class = "visual-emails">pcfritzen [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">pcfritzen [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Paulo Rogério da Silveira [72]<br /><span class = "visual-emails">paulosilveira [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Paulo Romanel [73]<br /><span class = "visual-emails">paulo.romanel [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Paulo Sérgio Walenia [74]<br /><span class = "visual-emails">walenia [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Rafael Fontes Souto [140]<br /><span class = "visual-emails">rfsouto [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Raphael Augusto de Souza Benedito [96]<br /><span class = "visual-emails">raphaelbenedito [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Renata Coelho Borges [345]<br /><span class = "visual-emails">renatacoelho [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Roberto Candido [75]<br /><span class = "visual-emails">robertocandido [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Roberto Cesar Betini [76]<br /><span class = "visual-emails">rcbetini [at] terra [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+<tr>
+	<td>Roberto Luiz Schwarz [77]<br /><span class = "visual-emails">schwarz.utfpr [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Roberto Zanetti Freire [339]<br /><span class = "visual-emails">robertofreire [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">robertofreire [at] professores [dot] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Robson Rubio Rodrigues [78]<br /><span class = "visual-emails">robsonrr [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Roger Gules [79]<br /><span class = "visual-emails">rgules [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">rgules [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Romildo Alves dos Prazeres [80]<br /><span class = "visual-emails">romildop [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">romildoeng [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Rosalba da Costa [81]<br /><span class = "visual-emails">rosalbacosta [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">rosalbautfpr [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Rosana Mayer [82]<br /><span class = "visual-emails">mayer [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Rosângela Bach Rodrigues dos Santos [83]<br /><span class = "visual-emails">rosangela [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+<tr>
+	<td>Rubem Petry Carbente [84]<br /><span class = "visual-emails">rubem [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Saul Hirsch [85]<br /><span class = "visual-emails">mbal [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">hirsch [at] itaipu [dot] gov [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Sérgio E. Gouvêa da Costa [86]<br /><span class = "visual-emails">s.gouvea [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">s.gouvea [at] pucpr [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Severino Cervelin [87]<br /><span class = "visual-emails">cervelin [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">scervelin [at] terra [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Thiago Alberto Rigo Passarin [167]<br /><span class = "visual-emails">passarin [at] professores [dot] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">passarin [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+<tr>
+	<td>Thiago de Paula Machado Bazzo [211]<br /><span class = "visual-emails">thiagobazzo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+<tr>
+	<td>Ubirajara Zoccoli [88]<br /><span class = "visual-emails">uzoccoli [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Uilian José Dreyer [226]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Ulisses Chemin Netto [139]<br /><span class = "visual-emails">ulisses.chemin [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+<tr>
+	<td>Victor Baptista Frencl [203]<br /><span class = "visual-emails">frencl [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+<tr>
+	<td>Vilmair Ermenio Wirmond [128]<br /><span class = "visual-emails">vilmair [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+<tr>
+	<td>Walmir Eros Wladika [89]<br /><span class = "visual-emails">eros [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">w2rios [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Walter Denis Cruz Sanchez [90]<br /><span class = "visual-emails">waltersanchez [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Wanderley Szlichta [91]<br /><span class = "visual-emails">wanderley [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+<tr>
+	<td>Winderson Eugenio dos Santos [92]<br /><span class = "visual-emails">winderson [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</table>
+
+</div>
+
+
+<!-- ########## Nova bloco de informações: Lista de visitantes ########## --> 
+<div class="title">Lista de visitantes/colaboradores do DAELT</a></div>
+<div>
+<p>Abaixo segue a lista de visitantes/colaboradores, suas áreas de atuação, e o grupo do DAELT com o qual já colaboraram.</p>
+<table class="tabelas-professor">
+	<col width="50%" />
+	<col width="50%" />
+
+<tr>
+	<th>Visitante [Código]</th>
+	<th>Grupo</th>
+</tr>
+
+<tr>
+	<td>Adalberto dos Santos [317]<br /><span class = "visual-emails">adbt.eng [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Adriana Schilive de Souza [267]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Alexandre de Almeida Prado Pohl [367]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Alexandre Francisco de Moraes Filho [295]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Alexandre Rasi Aoki [110]<br /><span class = "visual-emails">aoki [at] lactec [dot] org [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Alonso Figueroa de Souza Santos [256]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Aluísio do Nascimento Wrasse [179]<br /><span class = "visual-emails">wrasse [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ana Carla Cordeiro [259]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ana Cristina Kochem Vendramin [377]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ana Paula Dassie-Leite [195]<br /><span class = "visual-emails">pauladassie [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Anderson Almeida de Macedo Carvalho [231]<br /><span class = "visual-emails">anderson.b.carvalho [at] renault [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Anderson Emanuel Ximim Gavim [300]<br /><span class = "visual-emails">agavimfisica [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>André Biffe Di Renzo [257]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Andre Eugenio Lazzaretti [217]<br /><span class = "visual-emails">lazzaretti [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>André Felipe Silva Melo [307]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Andressa Carolinne Del Monego [248]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ângela Morandini Pradella [228]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Angélica Maria Tortola Ribeiro [356]<br /><span class = "visual-emails">angelicaribeiro [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Antonio Gomes de Araújo [206]<br /><span class = "visual-emails">aaraujo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Antonio Wotecoski [134]<br /><span class = "visual-emails">wotecoski [at] petrobras [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ariane Stefania Tabatcheik [180]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Armenes de Jesus Ramos Junior [376]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Arthur Fernando Bonelli [132]<br /><span class = "visual-emails">arthur [at] arteche [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Beatriz Brusamarello [328]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Beatriz dos Santos Pês [222]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Bertoldo Schneider Junior [330]<br /><span class = "visual-emails">bertoldo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Bill Jorge Costa [268]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Bruna Machado Molinari [246]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Bruno Akihiro Tanno Iamamura [193]<br /><span class = "visual-emails">iamamura [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>BRUNO ALISSON RODRIGUES [373]</td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Bruno Sens Chang [273]<br /><span class = "visual-emails">bschang [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Camila de Oliveira Silveira [260]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Carlos Andre Barbosa de Almeida [218]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Carlos Eduardo Fortes Gonzalez [269]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Carmen Caroline Rasera [264]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Carolina Correa Durce [221]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Christiane Gonçalves [304]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cintia de Lourdes Nahhas Rodacki [197]<br /><span class = "visual-emails">rodacki [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cladia Assade Leludak [238]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cláudio da Costa Teixeira [361]</td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cleiton Ferreira dos Santos [315]<br /><span class = "visual-emails">cleitonctba [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Clovis Tadeu Salmazo [123]<br /><span class = "visual-emails">clovis.salmazo [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cristiano Agulhari [182]<br /><span class = "visual-emails">agulhari [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Cristiano Marcos Agulhari [177]<br /><span class = "visual-emails">agulhari [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Daniel Rodrigues Pipa [116]<br /><span class = "visual-emails">danielpipa [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Daniel Rossato de Oliveira [292]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Danilo Carvalho de Gouveia [207]<br /><span class = "visual-emails">danilo.gouveia [at] lactec [dot] org [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Danilo Fernandes Gomes [281]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Davi Sabbag Roveri [216]<br /><span class = "visual-emails">davi.roveri [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>David Kretschek [160]<br /><span class = "visual-emails">davidk [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Denize Luzia Dorigo Barão [93]<br /><span class = "visual-emails">denizebarao [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">denizebarao [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Diego Plozza Hilgert [261]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Diego Souza [357]</td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Douglas Paladine Vieira [113]<br /><span class = "visual-emails">douglas [at] teste [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Douglas Roberto Jakubiak [135]<br /><span class = "visual-emails">jakubiak [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Edney Milhoretto [223]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Edson Mancini Filho [124]<br /><span class = "visual-emails">mancini [at] softall [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Eduardo Alves Portela Santos [235]<br /><span class = "visual-emails">eduardo.portela [at] pucpr [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Eduardo Bertogna [172]<br /><span class = "visual-emails">ebertogna [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Eduardo Lucas Sprung [311]<br /><span class = "visual-emails">eduardo.lucas [at] sionenergia [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Eduardo Nunes dos Santos [156]<br /><span class = "visual-emails">e.n.santos [at] ieee [dot] org</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Edwin Augusto Tonplo [262]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Elizete Maria Lourenço [121]<br /><span class = "visual-emails">elizete [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Emilson Ribeiro Viana Jr. [241]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Érico Gurski [220]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Euclides Alexandre Bernardelli [378]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fabiano Barcelos dos Santos [309]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fabiano Kiyoshi Mori [102]<br /><span class = "visual-emails">fabiano.mori [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fabio Kurt Schneider [265]<br /><span class = "visual-emails">fabioks [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fábio Luiz Pessoa Albini [301]<br /><span class = "visual-emails">fabioalbini [at] alunos [dot] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fábio Maurício Timi [204]<br /><span class = "visual-emails">fabio.mauricio.timi [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fabrizio Mancini [270]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fausto Augusto de Souza [150]<br /><span class = "visual-emails">fausto [at] email [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fernanda da Silva Almeida [321]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fernanda Moya Gomes Raffo [109]<br /><span class = "visual-emails">fernandamg [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fernando Anunciação Budzinski [323]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fernando Deschamps [200]<br /><span class = "visual-emails">fernando.deschamps [at] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fernando Martins Rosa [313]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Fillipe Alexandre Moraes [205]<br /><span class = "visual-emails">fillipe.alexandre.moraes [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Flávia Maria Cavalcanti Ferreira [372]<br /><span class = "visual-emails">null [at] gmail [dot] com</span><br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Flavio Cardoso dos Santos [178]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Flavio Neves Junior [308]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Francisco Antonio Ollé da Luz [254]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Francisco Rodrigues Lima Junior [282]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gabriela Rosalee Weigert Dalagnol [271]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gabriela Steinhaus de Oliveira [314]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gregório Jedyn [176]<br /><span class = "visual-emails">gjedyn [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Guilherme de Santi Peron [212]<br /><span class = "visual-emails">peron [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Guilherme Francescon Cittolin [157]<br /><span class = "visual-emails">gfcittolin [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Guilherme Heim Weber [303]<br /><span class = "visual-emails">gheimweber [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Guilherme Key Nagamine [288]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Guilherme Loro Brezinski [305]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Benvenutti Borba [312]<br /><span class = "visual-emails">gustavobborba [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Castagna [266]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Gomes Kuhn [243]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Nishida [181]<br /><span class = "visual-emails">nishida.gustavo [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Oliveira [164]<br /><span class = "visual-emails">gustavo [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Gustavo Rafael Collere Possetti [161]<br /><span class = "visual-emails">possetti [at] sanepar [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Hector Lise de Moura [350]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Henry Leonardo López Salamanca [111]<br /><span class = "visual-emails">henry [at] lactec [dot] org [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Hermes Irineu Del Monego [274]<br /><span class = "visual-emails">hmonego [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Isadora Zanella Zardo [319]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ivan Azevedo Cardoso [114]<br /><span class = "visual-emails">ivanac [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jamil de Araújo Farhat [343]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jean Filipe Kuhne [209]<br /><span class = "visual-emails">jean.filipe [at] algo [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jean Paulo Nakatu Longo [289]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jefferson dos Santos Ambrosio [335]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jefferson Tales Oliva [363]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jessé de Pelegrin [347]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>João Alberto Fabro [351]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>João Bosco Ribeiro do Val [294]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>João Francisco Labres dos Santos [255]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>João Lauro de Almeida Silva [316]<br /><span class = "visual-emails">jl.bio [at] outlook [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>João Vitor Gerevini Kasper [284]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Joel Sena Sales Jr. [277]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>José Carlos Pereira Coninck [163]<br /><span class = "visual-emails">coninck [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Jose Carlos Pereira Coninck [249]<br /><span class = "visual-emails">coninck [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>José Eduardo Gonçalves [298]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>José Jair Alves Mendes Junior [349]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Juliana Lundgren Rose [170]<br /><span class = "visual-emails">julianalundgren [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Julianne Gama [327]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Juliano de Pellegrin Pacheco [310]<br /><span class = "visual-emails">juliano.pacheco [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Julio Cesar de Carvalho [141]<br /><span class = "visual-emails">jccarvalho [at] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Júlio César Sécolo Ganacim [215]<br /><span class = "visual-emails">ganacim [at] tc [dot] eng [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Julio Cezar dos Santos de Morais [244]<br /><span class = "visual-emails">jcezar_x [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Julio Shigeaki Omori [122]<br /><span class = "visual-emails">julio.omori [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Keiko Veronica Ono Fonseca [136]<br /><span class = "visual-emails">keiko [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Kelso Krieger Gomes [290]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Kleiton de Morais Sousa [280]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Leandro Magatão [224]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Leonardo Batista de Santana [375]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Leonardo Göbel Fernandes [291]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Leyza Elmeri Baldo Dorini [155]<br /><span class = "visual-emails">leyza.dorini [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ligia Assis Soares [364]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Lino Trevisan [153]<br /><span class = "visual-emails">trevisan [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">linotrevisan [at] uol [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>GESTÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Lucas Blanes [297]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luciana Agnoletti dos Santos Pedotti [318]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luciana Rocha Hirsch [129]<br /><span class = "visual-emails">lufisica [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luciano Scandelari [263]<br /><span class = "visual-emails">scandelari [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luís Paulo Laus [107]<br /><span class = "visual-emails">laus [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Carlos Vieira [329]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Fabiano Serapio Ferreira [98]<br /><span class = "visual-emails">lfs [at] arteche [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Fernando Copetti [240]<br /><span class = "visual-emails">copetti [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">luizcopetti [at] gmx [dot] de</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Ledo Mota Melo Junior [174]<br /><span class = "visual-emails">luizledo [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Marcos de Lira Faria [306]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Luiz Santos Resende [158]<br /><span class = "visual-emails">lsresende [at] terra [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Mara Regina Alves de Assis [346]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcel Giovani Kroetz [103]<br /><span class = "visual-emails">kroetz [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcelo Borck Machado [214]<br /><span class = "visual-emails">Marcelo.bm [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcelo de Oliveira [368]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcelo Paludetto Rodrigues [242]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcelo Rudek [358]</td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marcio Henrique de Avelar Gomes [202]<br /><span class = "visual-emails">marcio.avelar [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marco Aurélio Visintin [302]<br /><span class = "visual-emails">marco.visintin [at] ifpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marco Aurélio Wehrmeister [342]</td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Maren Freutel [283]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Mario Pires Ramos [146]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marjorie Maria Bellinello [275]<br /><span class = "visual-emails">mbelinelli [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Marta Deckert [120]<br /><span class = "visual-emails">mardkt [at] hotmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Matheus de Oliveira Lorentz [359]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Matheus Lorentz [341]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Matheus Pozza Bento da Silva [365]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Mauro Fissassi Ushikubo [105]<br /><span class = "visual-emails">ushikubo [at] onda [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Milton Borsato [225]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Milton Rasteli [336]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Miraldo Matuichuk [213]<br /><span class = "visual-emails">miraldo.utfpr [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Mirella Augusto Rodrigues [366]</td>
+	<td><ul>
+		<li>GESTÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Mozart Pimentel [253]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Muriele Bester de Souza [251]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Murilo Oliveira Leme [354]</td>
+	<td><ul>
+		<li>GESTÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Muryllo Amalio de Souza [279]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Nathalia de Campos Prediger [353]</td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Nicole Polityto Cremasco [258]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Noel Massinhan Levy [112]<br /><span class = "visual-emails">noel [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Odilon Luis Tortelli [143]<br /><span class = "visual-emails">odilon [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Paula Cristina Rodrigues [245]<br /><span class = "visual-emails">p.c.rodrigues [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">paulac_r [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Paulo de Tarso Neves Junior [293]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Paulo Raffael Marozinski [237]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Paulo Roberto Derigi [101]<br /><span class = "visual-emails">pderigi [at] yahoo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Pedro Boareto [340]</td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Pedro Henrique Weidle [286]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Pedro Zambianchi Jr. [130]<br /><span class = "visual-emails">zambianchi [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRICIDADE E MAGNETISMO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Percio Luiz Karam de Miranda [355]</td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Percy Nohama [97]<br /><span class = "visual-emails">nohama [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>PETERSON CALLEGARIM DELLA GIACOMO [374]</td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rafael de Oliveira Ribeiro [276]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rafael Rodrigues [230]<br /><span class = "visual-emails">rafael.rodrigues [at] copel [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rafael Solheid Jacobs [322]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rafael Viera [149]<br /><span class = "visual-emails">vierarafael [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ralfe Marczak Quanz [360]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ramires Herrmann Mokwa [99]<br /><span class = "visual-emails">ramires [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Reginaldo Carreiro Santos [296]<br /><span class = "visual-emails">null [at] gmai [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Renata Lautert Yang [252]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ricardo Artigas Langer [108]<br /><span class = "visual-emails">artigas [at] engemov [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ricardo Lobato Torres [175]<br /><span class = "visual-emails">rltorres [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ricardo Luders [144]<br /><span class = "visual-emails">luders [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ricardo Sales da Veiga [227]<br /><span class = "visual-emails">veiga [at] alunos [dot] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ricardo Umbria Pedroni [168]<br /><span class = "visual-emails">ric.pedroni [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Richard Demo Souza [196]<br /><span class = "visual-emails">richard [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Roberson Oliveira [127]<br /><span class = "visual-emails">roberson [at] volvo [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rogerio Akira Furucho [232]<br /><span class = "visual-emails">rogerio.akira [at] ifsp [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Roman Kuiava [106]<br /><span class = "visual-emails">kuiava [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Romão Kowaltschuk [234]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Ronaldo Luis dos Santos Izzo [169]<br /><span class = "visual-emails">ronaldoizzo [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rubens Alexandre de Faria [325]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rubens Alexandre de Faria [138]<br /><span class = "visual-emails">rubens [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Rubens Martins Vianna Junior [118]<br /><span class = "visual-emails">rubens [at] smartlar [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Sara Rachel Orsi Moretto [104]<br /><span class = "visual-emails">rachel [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Saul Renato da Silva [166]<br /><span class = "visual-emails">saul.renato [at] compagas [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>INSTALAÇÕES ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Sidnei Helder Cardoso Teixeira [332]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Simone Crocetti [369]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Sinvaldo Rodrigues Moreno [148]<br /><span class = "visual-emails">sinvaldo.moreno [at] brookfieldenergia [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Stefanie von Randow de Souza [145]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tamara Simone Van Kaick [287]<br /><span class = "visual-emails">tamara [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tatiana de Almeida Prado [344]<br /><span class = "visual-emails">tatianaprado [at] alunos [dot] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tatiane O. Macedo [320]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Thelma Solange Piazza Fernandes [100]<br /><span class = "visual-emails">thelma [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Thiago Estrela Kalid [370]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Thiago Simões Dias [348]</td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tiago Luis Veiga Ribas [250]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>INDEFINIDO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tiago Machado [208]<br /><span class = "visual-emails">tiago.machado [at] algo [dot] com [dot] br</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Tiago Piovesan Vendruscolo [199]<br /><span class = "visual-emails">vendruscolo [at] utfpr [dot] edu [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Valfredo Pilla Junior [285]<br /><span class = "visual-emails">valfredo [at] utfpr [dot] edu [dot] br</span><br /><span class = "visual-emails">valfredo [at] gmx [dot] com</span></td>
+	<td><ul>
+		<li>AUTOMAÇÃO</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Valmir de Oliveira [133]<br /><span class = "visual-emails">valmir.utfpr [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Victor Martins [324]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Vilson Roiz Gonçalves Rebelo da Silva [131]<br /><span class = "visual-emails">vilson [at] eletrica [dot] ufpr [dot] br</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Vinicius de Oliveira Moura [278]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>MÁQUINAS ELÉTRICAS</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Wagner Rosa [331]<br /><span class = "visual-emails">NULL [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Walter Meneghette dos Santos [159]<br /><span class = "visual-emails">walter [at] mail [dot] com</span></td>
+	<td><ul>
+		<li>ELETRÔNICA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Wanderson Stael Paris [239]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>CONTROLE</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Wolfgang Biener [219]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Yan Leonardo Bertagnolli de Carvalho [326]<br /><span class = "visual-emails">null [at] gmail [dot] com</span></td>
+	<td><ul>
+		<li>SISTEMAS DE POTÊNCIA</li>
+	</ul></td>
+</tr>
+<tr>
+	<td>Zeno Luiz Iensen Nadal [371]</td>
+	<td><ul>
+		<li>GESTÃO</li>
+	</ul></td>
+</tr>
+</table>
+
+</div>
+
+
+<!-- ############# Nova bloco de informações: Validações HTML ############ --> 
+<div class="footer">
+    <a href="https://validator.w3.org/check?uri=referer">
+        <img src="https://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88">
+    </a>
+    <a href="https://jigsaw.w3.org/css-validator/check/referer">
+        <img src="https://jigsaw.w3.org/css-validator/images/vcss" alt="CSS válido!" height="31" width="88">
+    </a>
+</div>
+
+
+</body>
+</html>
