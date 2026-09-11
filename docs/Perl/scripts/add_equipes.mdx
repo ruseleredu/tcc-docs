@@ -1,0 +1,148 @@
+---
+id: add_equipes
+title: add_equipes
+sidebar_position: 8
+description: Insere novo grupo de tcc em tabela.
+---
+
+# `add_equipes.pl`
+
+Insere novo grupo de tcc em tabela.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+
+### Example
+
+```bash
+perl add_equipes.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Insere novo grupo de tcc em tabela.
+# NÃO associa alunos nem orientadores.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Insere novo grupo de tcc em tabela.$crlf";
+print STDERR "$aplicativo\::NÃO associa alunos nem orientadores.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES " .
+	"(ID, TITULO, ATIVA, ID_LIDER, DATA_INICIO) VALUES (?, ?, TRUE, ?, ?);");
+
+
+# definição de data de início para TODAS as equipes
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+print STDERR "Cód equipe <spc> 'tít trabalho' <spc> " .
+             "id líder (CTRL+D aborta):";
+while (<STDIN>)
+{
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if (!/\s*(\S+)\s*'(.*)'\s*(\S+)\s*/);
+
+	my $equipe_id       = $1;
+	my $equipe_titulo   = $2;
+	my $equipe_id_lider = $3;
+
+	$equipe_titulo =~ s/^\s*(.*?)\s*$/$1/;
+	(print STDERR "$aplicativo\::Título inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if length($equipe_titulo)==0;
+
+	$dbStatement->bind_param(1, $equipe_id);
+	$dbStatement->bind_param(2, $equipe_titulo);
+	$dbStatement->bind_param(3, $equipe_id_lider);
+	$dbStatement->bind_param(4, $equipe_datainicio);
+
+	$dbStatement->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód equipe <spc> 'tít trabalho' <spc> " .
+	             "id líder (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

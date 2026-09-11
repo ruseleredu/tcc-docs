@@ -1,0 +1,174 @@
+---
+id: add_alunos
+title: add_alunos
+sidebar_position: 1
+description: Insere novo aluno em tabela, efetuando consistência de e-mails
+---
+
+# `add_alunos.pl`
+
+Insere novo aluno em tabela, efetuando consistência de e-mails
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl add_alunos.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Insere novo aluno em tabela, efetuando consistência de e-mails
+# mas não verifica existência do nome do usuário na tabela.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+my $aluno_disciplina = "";
+my $aluno_turma      = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f1:2:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+$aluno_disciplina = $opcoes{1} if defined $opcoes{1};
+$aluno_turma      = $opcoes{2} if defined $opcoes{2};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f] " .
+	             "[-1 <disciplina>] [-2 <turma]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Insere novo aluno em tabela.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement1, $dbStatement2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"INSERT INTO DAELT.ALUNOS (ID, NOME, EMAIL, DATA_INICIO) " .
+	"VALUES (?, ?, ?, ?);");
+$dbStatement2 = $dbHandle->prepare(
+	"INSERT INTO DAELT.ALUNOS_DISCIPLINAS " .
+	"(ID_ALUNO, ID_DISCIPLINA, ID_TURMA, DATA_INICIO) " .
+	"VALUES (?, ?, ?, ?);");
+
+
+# definição de data de início para TODOS os alunos
+my $aluno_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome do aluno
+print STDERR "Cód ($aluno_disciplina/$aluno_turma) <spc> " .
+             "'nome' <spc> e-mail (CTRL+D aborta):";
+while (<STDIN>)
+{
+	(print STDERR "$aplicativo\::Entrada incorreta$crlf" and
+	 $dbHandle->disconnect() and die)
+		if (!/\s*(\S+)\s*'(.*)'\s*(\S+)\s*/);
+
+	my $aluno_id    = $1;
+	my $aluno_nome  = $2;
+	my $aluno_email = $3;
+
+	$aluno_nome =~ s/^\s*(.*?)\s*$/$1/;
+	(print STDERR "$aplicativo\::Nome de aluno inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if length($aluno_nome)==0;
+
+	(print STDERR "$aplicativo\::Email inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if $aluno_email !~ /^([\w\.\-\_]+)\@([\w\.\-\_]+[a-zA-Z]{2,})$/;
+
+	$dbStatement1->bind_param(1, $aluno_id);
+	$dbStatement1->bind_param(2, $aluno_nome);
+	$dbStatement1->bind_param(3, $aluno_email);
+	$dbStatement1->bind_param(4, $aluno_datainicio);
+
+	$dbStatement1->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbStatement2->bind_param(1, $aluno_id);
+	$dbStatement2->bind_param(2, $aluno_disciplina);
+	$dbStatement2->bind_param(3, $aluno_turma);
+	$dbStatement2->bind_param(4, $aluno_datainicio);
+
+	$dbStatement2->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód ($aluno_disciplina/$aluno_turma) <spc> " .
+	             "'nome' <spc> e-mail (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

@@ -106,6 +106,7 @@ const config: Config = {
         "ini",
         "latex",
         "php",
+        "docker",
         "perl",
         "java",
       ],

@@ -1,0 +1,213 @@
+---
+id: close_equipes_abertas
+title: close_equipes_abertas
+sidebar_position: 32
+description: Encerra equipes abertas (fechamento anual).
+---
+
+# `close_equipes_abertas.pl`
+
+Encerra equipes abertas (fechamento anual).
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+
+### Example
+
+```bash
+perl close_equipes_abertas.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Encerra equipes abertas (fechamento anual).
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Encerra equipes abertas (fechamento anual)$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3, $dbStatement4, $dbStatement5);
+my (@dbLinha);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID, B.ID_TIPO " .
+	"FROM TCC.EQUIPES A, TCC.BANCAS_EQUIPES B " .
+	"WHERE A.ID = B.ID_EQUIPE AND A.DATA_FIM IS NULL AND " .
+	      "B.DATA_FIM IS NULL;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT A.ID, B.ID_DOCUMENTO " .
+	"FROM TCC.EQUIPES A, TCC.EQUIPES_DOCUMENTOS B " .
+	"WHERE A.ID = B.ID_EQUIPE AND A.DATA_FIM IS NULL AND " .
+	      "B.DATA IS NULL;");
+$dbStatement3 = $dbHandle->prepare(
+	"UPDATE TCC.EQUIPES_DISCIPLINAS " .
+	"SET DATA_FIM = ? " .
+	"WHERE DATA_FIM IS NULL;");
+$dbStatement4 = $dbHandle->prepare(
+	"UPDATE DAELT.ALUNOS_DISCIPLINAS " .
+	"SET DATA_FIM = ? " .
+	"WHERE DATA_FIM IS NULL;");
+$dbStatement5 = $dbHandle->prepare(
+	"UPDATE TCC.EQUIPES " .
+	"SET DATA_FIM = ? " .
+	"WHERE DATA_FIM IS NULL;");
+
+
+# definição de data de início para TODAS as equipes
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+print STDERR "Data de fechamento (YYYY-MM-DD) (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 1);
+
+	my $data_fechamento  = $informacao[0];
+
+	# checagem de bancas abertas
+	$dbStatement1->execute()
+		or (print "$aplicativo\::Falha de checagem: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	my $checa_existencia = 0;
+	while ( @dbLinha = $dbStatement1->fetchrow_array )
+	{
+		print "Existem bancas ainda abertas:$crlf"
+			if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "$dbLinha[0], $dbLinha[1]$crlf";
+	}
+
+	if ($checa_existencia == 1)
+	{
+		$dbHandle->disconnect();
+		die "Feche bancas abertas.";
+	}
+
+	# checagem de documentos abertas
+	$dbStatement2->execute()
+		or (print "$aplicativo\::Falha de checagem: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	while ( @dbLinha = $dbStatement2->fetchrow_array )
+	{
+		print "Existem documentos ainda abertos:$crlf"
+			if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "$dbLinha[0], $dbLinha[1]$crlf";
+	}
+
+	if ($checa_existencia == 1)
+	{
+		$dbHandle->disconnect();
+		die "Feche documentos abertos.";
+	}
+
+	# efetua fechamento de disciplinas (equipe e alunos)
+	$dbStatement3->bind_param(1, $data_fechamento);
+	$dbStatement3->execute()
+		or (print "$aplicativo\::Falha de fechamento: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbStatement4->bind_param(1, $data_fechamento);
+	$dbStatement4->execute()
+		or (print "$aplicativo\::Falha de fechamento: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbStatement5->bind_param(1, $data_fechamento);
+	$dbStatement5->execute()
+		or (print "$aplicativo\::Falha de fechamento: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Data de fechamento (YYYY-MM-DD) (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

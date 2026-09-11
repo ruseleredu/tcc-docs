@@ -1,0 +1,37 @@
+---
+id: teste3
+title: teste3
+sidebar_position: 86
+description: use strict;
+---
+
+# `teste3.pl`
+
+use strict;
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+print "email:";
+my $email = <STDIN>;
+chomp($email);
+
+
+if ($email =~ /^([\w\.\-\_]+)\@([\w\.\-\_]+[a-zA-Z]{2,})$/)
+{
+	my $name = $1;
+	my $address = $2;
+	$address =~ s/\./ [dot] /g;
+	$email = $name . " [at] " . $address;
+}
+
+print "passou: [$email]\n";
+```

@@ -1,0 +1,193 @@
+---
+id: create_txt_biblioteca
+title: create_txt_biblioteca
+sidebar_position: 46
+description: Gera o arquivo TXT referente às monografias a serem entregues na biblioteca.
+---
+
+# `create_txt_biblioteca.pl`
+
+Gera o arquivo TXT referente às monografias a serem entregues na biblioteca.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `File::Copy`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-c` | Required |
+| `-s` | Required |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl create_txt_biblioteca.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use File::Copy "cp";
+
+# -----------------------------------------------------------------------------
+# Gera o arquivo TXT referente às monografias a serem entregues na biblioteca.
+# Se necessário, copia os arquivos "XXX_monografia_final.pdf" para diretório
+# específico, zipando os arquivos, para geração de CD.
+# DEVE ser executado ANTES DO FECHAMENTO do semestre.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+my $curso    = "";
+my $semestre = "";
+my $dir_orig = "";
+my $dir_dest = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:c:s:1:2:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+$curso    = $opcoes{c} if defined $opcoes{c};
+$semestre = $opcoes{s} if defined $opcoes{s};
+$dir_orig = $opcoes{1} if defined $opcoes{1};
+$dir_dest = $opcoes{2} if defined $opcoes{2};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] " .
+	             "[-c <curso biblioteca>] [-s <semestre>] " .
+	             "[-1 <diretorio origem>] [-2 <diretorio destino>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Gera o arquivo TXT referente às monografias " .
+             "a serem entregues na biblioteca.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID, A.TITULO, C.SIGLA " .
+	"FROM TCC.EQUIPES A, TCC.EQUIPES_DISCIPLINAS B, " .
+	     "DAELT.DOMINIO_DISCIPLINAS C, TCC.BANCAS_EQUIPES D " .
+	"WHERE A.DATA_FIM IS NULL AND A.ID = B.ID_EQUIPE AND " .
+	      "B.DATA_FIM IS NULL AND B.ID_DISCIPLINA = C.ID AND " .
+	      "C.SIGLA = ? AND C.ID_AGREGADOR = 'TCC2' AND " .
+	      "A.ID = D.ID_EQUIPE AND D.ID_TIPO = '4' AND D.NOTA >= '6.0' " .
+	"ORDER BY A.ID;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT COUNT(*) " .
+	"FROM TCC.EQUIPES_DOCUMENTOS " .
+	"WHERE ID_EQUIPE = ? AND DATA IS NULL;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.NOME FROM TCC.EQUIPES_ALUNOS A, DAELT.ALUNOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.DATA_FIM IS NULL AND A.ID_ALUNO = B.ID " .
+	"ORDER BY B.NOME;");
+
+$dbStatement1->bind_param(1, $curso);
+$dbStatement1->execute();
+
+print "Sequencial\tAluno/Equipes\tTítulo\tArquivo\t" .
+      "Info empresas\tBase patente$crlf";
+
+my $sequencial = 1;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $equipe_id_saved = $dbLinha1[0];
+	my $checa_existencia;
+	my $sequencial_formatado = substr "0$sequencial", -2;
+	my $nome_arquivo = "CT_$dbLinha1[2]_$semestre\_$sequencial_formatado";
+
+	$dbStatement2->bind_param(1, $equipe_id_saved);
+	$dbStatement2->execute();
+
+	my $contagem_documentos = 0;
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		$contagem_documentos = $dbLinha2[0];
+	}
+
+	if ( $contagem_documentos == 0 )
+	{
+		$dbStatement3->bind_param(1, $equipe_id_saved);
+		$dbStatement3->execute();
+
+		$checa_existencia = 0;
+		while ( @dbLinha2 = $dbStatement3->fetchrow_array )
+		{
+			print "$sequencial\t$dbLinha2[0]\t$dbLinha1[1]\t" .
+				  "$nome_arquivo\tNÃO\tNÃO\t$equipe_id_saved$crlf"
+				if $checa_existencia == 0;
+			print "\t$dbLinha2[0]$crlf"
+				if $checa_existencia == 1;
+
+			$checa_existencia = 1;
+		}
+
+		if ( length($dir_orig) != 0 && length($dir_dest) != 0 )
+		{	# copia monografias
+			my $nome_orig = "$dir_orig/$equipe_id_saved/" .
+				            "$equipe_id_saved\_final.pdf";
+			my $nome_dest = "$dir_dest/$nome_arquivo.pdf";
+
+			# print "---> cp($nome_orig, $nome_dest)$crlf";
+			cp($nome_orig, $nome_dest);
+		}
+
+		$sequencial++;
+	}
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

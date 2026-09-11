@@ -1,0 +1,143 @@
+---
+id: add_equipes_agregador_docs
+title: add_equipes_agregador_docs
+sidebar_position: 9
+description: Associa agregado de documentos à equipe.
+---
+
+# `add_equipes_agregador_docs.pl`
+
+Associa agregado de documentos à equipe.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl add_equipes_agregador_docs.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Associa agregado de documentos à equipe.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f1:2:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Associa agregado de documentos à equipe.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES_DOCUMENTOS " .
+	"(ID_EQUIPE, ID_DOCUMENTO, DATA_LIMITE, FORCADO) " .
+	"SELECT ?, ID_DOCUMENTO, DATA_LIMITE_ATUAL, FALSE " .
+	"FROM TCC.AGREGADOR_DOCUMENTOS WHERE ID_AGREGADOR = ?;");
+
+
+# definição de data de início para TODAS as equipes
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe + código de agregador
+print STDERR "Cód equipe <spc> Cod agregador (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 2);
+
+	my $equipe_id           = $informacao[0];
+	my $equipe_id_agregador = $informacao[1];
+
+	$dbStatement->bind_param(1, $equipe_id);
+	$dbStatement->bind_param(2, $equipe_id_agregador);
+
+	$dbStatement->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód equipe <spc> Cod agregador (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

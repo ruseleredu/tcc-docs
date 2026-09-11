@@ -1,0 +1,192 @@
+---
+id: list_alunos_notas
+title: list_alunos_notas
+sidebar_position: 64
+description: Apresenta listagem de alunos ABERTOS e suas notas.
+---
+
+# `list_alunos_notas.pl`
+
+Apresenta listagem de alunos ABERTOS e suas notas.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl list_alunos_notas.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de alunos ABERTOS e suas notas.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de alunos ABERTOS e suas " .
+             "notas.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3, $dbStatement4);
+my (@dbLinha1, @dbLinha2, @dbLinha3);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+# ----- SQL ALTERNATIVO
+# SELECT X.ID, X.NOME, Y.NOTA FROM (SELECT A.ID, A.NOME, C.ID_EQUIPE, M.CONTAGEM FROM DAELT.ALUNOS A, DAELT.ALUNOS_DISCIPLINAS B, TCC.EQUIPES_ALUNOS C, (SELECT A.ID, COUNT(B.ID) CONTAGEM FROM TCC.EQUIPES A LEFT JOIN TCC.EQUIPES_DOCUMENTOS B ON A.ID = B.ID_EQUIPE AND B.DATA IS NULL GROUP BY A.ID) M WHERE A.ID = B.ID_ALUNO AND A.DATA_FIM IS NULL AND B.ID_DISCIPLINA = 'ET60G' AND B.ID_TURMA = 'S21' AND B.DATA_FIM IS NULL AND A.ID = C.ID_ALUNO AND C.DATA_FIM IS NULL AND M.ID = C.ID_EQUIPE) X LEFT JOIN TCC.BANCAS_EQUIPES Y ON X.ID_EQUIPE = Y.ID_EQUIPE AND Y.ID_TIPO IN ('4', NULL) AND X.CONTAGEM = 0 ORDER BY X.NOME
+# ----- SQL ALTERNATIVO
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID_DISCIPLINA, A.ID_TURMA, B.ID_AGREGADOR, B.NOME " .
+	"FROM DAELT.ALUNOS_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B " .
+	"WHERE A.DATA_FIM IS NULL AND A.ID_DISCIPLINA = B.ID " .
+	"GROUP BY A.ID_DISCIPLINA, A.ID_TURMA " .
+	"ORDER BY NOME, A.ID_DISCIPLINA, A.ID_TURMA;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT RES.*, C.ID_EQUIPE FROM
+	   (SELECT A.ID, A.NOME
+	    FROM DAELT.ALUNOS A, DAELT.ALUNOS_DISCIPLINAS B
+	    WHERE A.ID = B.ID_ALUNO AND A.DATA_FIM IS NULL AND
+	          B.ID_DISCIPLINA = ? AND B.ID_TURMA = ? AND
+	          B.DATA_FIM IS NULL
+	    ORDER BY A.NOME) AS RES
+	 LEFT JOIN TCC.EQUIPES_ALUNOS C
+	 ON RES.ID = C.ID_ALUNO AND C.DATA_FIM IS NULL;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT COUNT(*) " .
+	"FROM TCC.EQUIPES_DOCUMENTOS " .
+	"WHERE ID_EQUIPE = ? AND DATA IS NULL;");
+$dbStatement4 = $dbHandle->prepare(
+	"SELECT NOTA " .
+	"FROM TCC.BANCAS_EQUIPES " .
+	"WHERE ID_EQUIPE = ? AND ID_TIPO IN (?, ?) " .
+	"ORDER BY DATA_FIM DESC;");
+
+
+$dbStatement1->execute();
+
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $id_disciplina = $dbLinha1[0];
+	my $id_turma      = $dbLinha1[1];
+
+	print "Disciplina: $dbLinha1[3] ($id_disciplina) / Turma: $id_turma$crlf";
+
+	$dbStatement2->bind_param(1, $id_disciplina);
+	$dbStatement2->bind_param(2, $id_turma);
+	$dbStatement2->execute();
+
+	my $total_alunos = 0;
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		my $id_equipe = $dbLinha2[2];
+		my $nota      = "pendente";
+
+		if (defined $id_equipe)
+		{
+			# checa se entregou todos os documentos
+			$dbStatement3->bind_param(1, $id_equipe);
+			$dbStatement3->execute();
+
+			my $contagem_documentos = 0;
+			while ( @dbLinha3 = $dbStatement3->fetchrow_array )
+			{
+				$contagem_documentos = $dbLinha3[0];
+			}
+
+			if ( $contagem_documentos == 0 )
+			{
+				# pega nota do aluno (primeira nota que aparecer)
+				$dbStatement4->bind_param(1, $id_equipe);
+				$dbStatement4->bind_param(2, '1') if $dbLinha1[2] eq 'MET';
+				$dbStatement4->bind_param(3, '2') if $dbLinha1[2] eq 'MET';
+				$dbStatement4->bind_param(2, '3') if $dbLinha1[2] eq 'TCC1';
+				$dbStatement4->bind_param(2, '4') if $dbLinha1[2] eq 'TCC2';
+				$dbStatement4->execute();
+
+				my $checa_existencia = 0;
+				while ( @dbLinha3 = $dbStatement4->fetchrow_array )
+				{
+					$nota = $dbLinha3[0] + 0 if ( $checa_existencia == 0 );
+					$checa_existencia = 1;
+				}
+			}
+		}
+		else
+		{
+			$nota = "sem equipe";
+		}
+
+		print "$dbLinha2[0]\t$dbLinha2[1]\t$nota$crlf";
+		$total_alunos++;
+	}
+
+	print "Total: $total_alunos$crlf$crlf";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

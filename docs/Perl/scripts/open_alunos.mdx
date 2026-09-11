@@ -1,0 +1,206 @@
+---
+id: open_alunos
+title: open_alunos
+sidebar_position: 77
+description: Abre alunos (reabrindo equipe mais recente).
+---
+
+# `open_alunos.pl`
+
+Abre alunos (reabrindo equipe mais recente).
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl open_alunos.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Abre alunos (reabrindo equipe mais recente).
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+my $aluno_disciplina = "";
+my $aluno_turma      = "";
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f1:2:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+$aluno_disciplina = $opcoes{1} if defined $opcoes{1};
+$aluno_turma      = $opcoes{2} if defined $opcoes{2};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f] " .
+	             "[-1 <disciplina>] [-2 <turma]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Abre alunos (reabrindo equipe mais recente).$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3, $dbStatement4);
+my (@dbLinha);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"INSERT INTO DAELT.ALUNOS_DISCIPLINAS " .
+	"(ID_ALUNO, ID_DISCIPLINA, ID_TURMA, DATA_INICIO) " .
+	"SELECT ?, ?, ?, ? FROM DUAL " .
+	"WHERE NOT EXISTS " .
+	"(SELECT * FROM DAELT.ALUNOS_DISCIPLINAS " .
+	 "WHERE ID_ALUNO = ? AND DATA_FIM IS NULL);");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT A.ID_EQUIPE FROM TCC.EQUIPES_ALUNOS A, TCC.EQUIPES B " .
+	"WHERE A.ID_ALUNO = ? AND A.DATA_FIM IS NULL AND A.ID_EQUIPE = B.ID AND " .
+	      "B.DATA_FIM IS NOT NULL AND B.ATIVA = TRUE;");
+$dbStatement3 = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES_DISCIPLINAS " .
+	"(ID_EQUIPE, ID_DISCIPLINA, ID_TURMA, DATA_INICIO) " .
+	"SELECT ?, ?, ?, ? FROM DUAL " .
+	"WHERE NOT EXISTS " .
+	"(SELECT * FROM TCC.EQUIPES_DISCIPLINAS " .
+	 "WHERE ID_EQUIPE = ? AND DATA_FIM IS NULL);");
+$dbStatement4 = $dbHandle->prepare(
+	"UPDATE TCC.EQUIPES " .
+	"SET DATA_FIM = NULL " .
+	"WHERE ID = ? AND DATA_FIM IS NOT NULL");
+
+# definição de data de início para TODOS os alunos
+my $aluno_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+print STDERR "Cod aluno (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 1);
+
+	my $aluno_id  = $informacao[0];
+
+	# insere nova disciplina (não existe outra aberta)
+	$dbStatement1->bind_param(1, $aluno_id);
+	$dbStatement1->bind_param(2, $aluno_disciplina);
+	$dbStatement1->bind_param(3, $aluno_turma);
+	$dbStatement1->bind_param(4, $aluno_datainicio);
+	$dbStatement1->bind_param(5, $aluno_id);
+	$dbStatement1->execute()
+		or (print "$aplicativo\::Falha de inserção: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	# recuperando equipe do aluno:
+	# 1) equipe existe, ligação equipe-aluno está aberta, equipe está ativa)
+	$dbStatement2->bind_param(1, $aluno_id);
+	$dbStatement2->execute()
+		or (print "$aplicativo\::Falha de checagem: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	my $equipe_id = '0';
+	while ( @dbLinha = $dbStatement2->fetchrow_array )
+	{
+		$equipe_id = $dbLinha[0];
+	}
+
+	if ($equipe_id ne '0')
+	{
+		print STDERR "Atualizando info de equipe: $equipe_id $crlf";
+
+		# insere nova disciplina (não existe outra aberta)
+		$dbStatement3->bind_param(1, $equipe_id);
+		$dbStatement3->bind_param(2, $aluno_disciplina);
+		$dbStatement3->bind_param(3, $aluno_turma);
+		$dbStatement3->bind_param(4, $aluno_datainicio);
+		$dbStatement3->bind_param(5, $equipe_id);
+		$dbStatement3->execute()
+			or (print "$aplicativo\::Falha de inserção: " .
+			          "$DBI::errstr$crlf" and
+			    $dbHandle->disconnect() and die);
+
+		# abre equipe
+		$dbStatement4->bind_param(1, $equipe_id);
+		$dbStatement4->execute()
+			or (print "$aplicativo\::Falha de inserção: " .
+			          "$DBI::errstr$crlf" and
+			    $dbHandle->disconnect() and die);
+	}
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cod aluno (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

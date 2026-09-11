@@ -1,0 +1,144 @@
+---
+id: list_bancas
+title: list_bancas
+sidebar_position: 65
+description: Apresenta listagem de bancas.
+---
+
+# `list_bancas.pl`
+
+Apresenta listagem de bancas.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl list_bancas.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de bancas.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+my $hora_formato_sql = "'%H:%i:%S'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de bancas.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID, A.ID_EQUIPE, C.TITULO, B.NOME, FORMAT(A.NOTA, 1), " .
+	       "DATE_FORMAT(A.DATA_APRESENTACAO, $data_formato_sql), " .
+	       "TIME_FORMAT(A.HORA_APRESENTACAO, $hora_formato_sql), " .
+	       "DATE_FORMAT(A.DATA_INICIO, $data_formato_sql), " .
+	       "DATE_FORMAT(A.DATA_FIM, $data_formato_sql) " .
+	"FROM TCC.BANCAS_EQUIPES A, TCC.DOMINIO_BANCAS B, TCC.EQUIPES C " .
+	"WHERE A.ID_TIPO = B.ID AND A.ID_EQUIPE = C.ID " .
+	"ORDER BY A.ID_EQUIPE, ID_TIPO;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT B.NOME " .
+	"FROM TCC.BANCAS_PROFESSORES A, DAELT.PROFESSORES B " .
+	"WHERE A.ID_BANCA = ? AND A.ID_PROFESSOR = B.ID " .
+	"ORDER BY B.NOME;");
+
+$dbStatement1->execute();
+
+my $aberto = 'ABERTO';
+my $datafim;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $banca_id_saved = $dbLinha1[0];
+
+	$datafim = $dbLinha1[8] if ( defined $dbLinha1[8]);
+	$datafim = $aberto      if (!defined $dbLinha1[8]);
+
+	print "[$dbLinha1[0]]\t$dbLinha1[1]\t$dbLinha1[2]\t" .
+	      "$dbLinha1[7]\t$datafim$crlf";
+	print "\t1\t$dbLinha1[3]\t$dbLinha1[4]\t$dbLinha1[5]$crlf"
+		if !defined $dbLinha1[6];
+	print "\t1\t$dbLinha1[3]\t$dbLinha1[4]\t$dbLinha1[5]\t$dbLinha1[6]$crlf"
+		if  defined $dbLinha1[6];
+
+	$dbStatement2->bind_param(1, $banca_id_saved);
+	$dbStatement2->execute();
+
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		print "\t2\t$dbLinha2[0]$crlf";
+	}
+	print "$crlf";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

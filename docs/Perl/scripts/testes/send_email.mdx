@@ -1,0 +1,42 @@
+---
+id: send_email
+title: send_email
+sidebar_position: 84
+description: use strict;
+---
+
+# `send_email.pl`
+
+use strict;
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `Mail::Sendmail`
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Mail::Sendmail qw(sendmail %mailcfg);
+
+$mailcfg{smtp} = [qw(spamfirewall2.utfpr.edu.br)];
+
+my %mail = (
+	to       => 'mrosa@utfpr.edu.br',
+	from     => 'tcc@nupet.daelt.ct.utfpr.edu.br',
+	subject  => 'Informacoes de TCC',
+	message  => "Mensagem de teste para avaliar send-mail.",
+);
+
+sendmail(%mail) or die $Mail::Sendmail::error;
+print "OK. Log says:\n", $Mail::Sendmail::log;
+print "\n";
+```

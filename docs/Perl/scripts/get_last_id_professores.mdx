@@ -1,0 +1,122 @@
+---
+id: get_last_id_professores
+title: get_last_id_professores
+sidebar_position: 62
+description: Recupera id válido para professores
+---
+
+# `get_last_id_professores.pl`
+
+Recupera id válido para professores
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl get_last_id_professores.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Recupera id válido para professores
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Recupera id válido para professores.\n";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+my @dbLinha;
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"SELECT ID FROM DAELT.PROFESSORES ORDER BY ID DESC LIMIT 1;");
+
+
+# definição de data de início para TODOS os professores
+my $professor_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém id válido
+$dbStatement->execute();
+
+my $professor_id_saved;
+while ( @dbLinha = $dbStatement->fetchrow_array )
+{
+	$professor_id_saved = $dbLinha[0] if !defined( $professor_id_saved );
+}
+
+print "$professor_id_saved$crlf";
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

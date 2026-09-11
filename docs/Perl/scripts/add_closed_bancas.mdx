@@ -1,0 +1,165 @@
+---
+id: add_closed_bancas
+title: add_closed_bancas
+sidebar_position: 5
+description: Insere nova banca em tabela.
+---
+
+# `add_closed_bancas.pl`
+
+Insere nova banca em tabela.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+
+### Example
+
+```bash
+perl add_closed_bancas.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Insere nova banca em tabela.
+# Associa também os professores.
+# A banca já está fechada, com nota definida.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Insere banca em tabela.$crlf";
+print STDERR "$aplicativo\::A banca já está fechada, com nota definida.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"INSERT INTO TCC.BANCAS_EQUIPES " .
+	"(ID_EQUIPE, ID_TIPO, NOTA, DATA_APRESENTACAO, HORA_APRESENTACAO, " .
+	 "DATA_INICIO, DATA_FIM) " .
+	"VALUES (?, ?, ?, ?, ?, ?, ?);");
+
+
+# definição de data de início para TODAS das bancas
+my $banca_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém dados da banca
+print STDERR "Cód equipe <spc> tipo banca " .
+             "(1-prop/2-defesa prop/3-tcc1/4-tcc2 <spc> nota <spc> " .
+             "dt apres (YYYY-MM-DD) hr apres (HH-MM-SS) (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 5);
+
+	(print STDERR "$aplicativo\::Tipo de banca inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacao[1] !~ /[1234]/);
+
+	(print STDERR "$aplicativo\::Data inválida$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacao[3] !~ /\d\d\d\d-\d\d-\d\d/);
+
+	(print STDERR "$aplicativo\::Hora inválida$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacao[4] !~ /(\d\d-\d\d-\d\d)|NULL/);
+
+	$informacao[4] =~ s/-/:/g if $informacao[4] ne 'NULL';
+	$informacao[4] =  undef   if $informacao[4] eq 'NULL';
+
+	$dbStatement->bind_param(1, $informacao[0]);
+	$dbStatement->bind_param(2, $informacao[1]);
+	$dbStatement->bind_param(3, $informacao[2]);
+	$dbStatement->bind_param(4, $informacao[3]);
+	$dbStatement->bind_param(5, $informacao[4]);
+	$dbStatement->bind_param(6, $informacao[3]);
+	$dbStatement->bind_param(7, $informacao[3]);
+
+	$dbStatement->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód equipe <spc> tipo banca " .
+	             "(1-prop/2-defesa prop/3-tcc1/4-tcc2 <spc> nota <spc> " .
+	             "dt apres (YYYY-MM-DD) hr apres (HH-MM-SS) (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

@@ -1,0 +1,204 @@
+---
+id: add_equipes_orientadores_completo
+title: add_equipes_orientadores_completo
+sidebar_position: 19
+description: Associa orientadores à equipe.
+---
+
+# `add_equipes_orientadores_completo.pl`
+
+Associa orientadores à equipe.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl add_equipes_orientadores_completo.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Associa orientadores à equipe.
+# Cria a equipe.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+my $equipe_disciplina = "";
+my $equipe_turma      = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f1:2:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+$equipe_disciplina = $opcoes{1} if defined $opcoes{1};
+$equipe_turma      = $opcoes{2} if defined $opcoes{2};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f] " .
+	             "[-1 <disciplina>] [-2 <turma>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Associa orientadores à equipe.$crlf";
+print STDERR "$aplicativo\::Cria a equipe.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement1, $dbStatement2, $dbStatement3);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES " .
+	"(ID, TITULO, ATIVA, ID_LIDER, DATA_INICIO) VALUES (?, ?, TRUE, ?, ?);");
+$dbStatement2 = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES_DISCIPLINAS " .
+	"(ID_EQUIPE, ID_DISCIPLINA, ID_TURMA, DATA_INICIO) VALUES (?, ?, ?, ?);");
+$dbStatement3 = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES_ORIENTADORES " .
+	"(ID_EQUIPE, ID_ORIENTADOR, ORIENTACAO, DATA_INICIO) " .
+	"VALUES (?, ?, ?, ?);");
+
+
+# definição de data de início para TODAS as equipes
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+print STDERR "Cód equipe ($equipe_disciplina/$equipe_turma) <spc> " .
+             "'tít trabalho' <spc> id líder <spc> " .
+             "núm orientadores <spc> cód orientador <spc> " .
+             "tipo (0-co/1-ori) ... (CTRL+D aborta):";
+while (<STDIN>)
+{
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if (!/\s*(\S+)\s*'(.*)'(.*)/);
+
+	my $equipe_id     = $1;
+	my $equipe_titulo = $2;
+	my @informacao    = split(' ', $3);
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize < 2);
+
+	$equipe_titulo =~ s/^\s*(.*?)\s*$/$1/;
+	(print STDERR "$aplicativo\::Título inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if length($equipe_titulo)==0;
+
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != $informacao[1]*2 + 2);
+
+	$dbStatement1->bind_param(1, $equipe_id);
+	$dbStatement1->bind_param(2, $equipe_titulo);
+	$dbStatement1->bind_param(3, $informacao[0]);
+	$dbStatement1->bind_param(4, $equipe_datainicio);
+
+	$dbStatement1->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbStatement2->bind_param(1, $equipe_id);
+	$dbStatement2->bind_param(2, $equipe_disciplina);
+	$dbStatement2->bind_param(3, $equipe_turma);
+	$dbStatement2->bind_param(4, $equipe_datainicio);
+
+	$dbStatement2->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	for (my $i=0; $i<$informacao[1]; $i++)
+	{
+		(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+		 $dbHandle->disconnect() and die)
+			if ($informacao[$i*2 + 3] !~ /[01]/);
+
+		$dbStatement3->bind_param(1, $equipe_id);
+		$dbStatement3->bind_param(2, $informacao[$i*2 + 2]);
+		$dbStatement3->bind_param(3, $informacao[$i*2 + 3]);
+		$dbStatement3->bind_param(4, $equipe_datainicio);
+
+		$dbStatement3->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+	}
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód equipe ($equipe_disciplina/$equipe_turma) <spc> " .
+	             "'tít trabalho' <spc> id líder <spc> " .
+	             "núm orientadores <spc> cód orientador <spc> " .
+	             "tipo (0-co/1-ori) ... (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

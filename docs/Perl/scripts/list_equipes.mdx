@@ -1,0 +1,217 @@
+---
+id: list_equipes
+title: list_equipes
+sidebar_position: 73
+description: Apresenta listagem de equipes.
+---
+
+# `list_equipes.pl`
+
+Apresenta listagem de equipes.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl list_equipes.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de equipes.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de equipes.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3, $dbStatement4, $dbStatement5);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID, A.TITULO, A.ATIVA, ".
+	       "DATE_FORMAT(A.DATA_INICIO, $data_formato_sql), " .
+	       "DATE_FORMAT(A.DATA_FIM, $data_formato_sql), " .
+	       "B.NOME " .
+	"FROM TCC.EQUIPES A, DAELT.PROFESSORES B " .
+	"WHERE A.ID_LIDER = B.ID " .
+	"ORDER BY ID DESC;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT B.ID, B.NOME, A.ID_TURMA, ".
+	       "DATE_FORMAT(A.DATA_INICIO, $data_formato_sql), " .
+	       "DATE_FORMAT(A.DATA_FIM, $data_formato_sql) " .
+	"FROM TCC.EQUIPES_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_DISCIPLINA = B.ID " .
+	"ORDER BY A.DATA_INICIO;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.NOME, " .
+	       "DATE_FORMAT(A.DATA_INICIO, $data_formato_sql), " .
+	       "DATE_FORMAT(A.DATA_FIM, $data_formato_sql) " .
+	"FROM TCC.EQUIPES_ALUNOS A, DAELT.ALUNOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_ALUNO = B.ID ".
+	"ORDER BY B.NOME;");
+$dbStatement4 = $dbHandle->prepare(
+	"(SELECT B.NOME, A.ORIENTACAO, " .
+	        "DATE_FORMAT(A.DATA_INICIO, $data_formato_sql), " .
+	        "DATE_FORMAT(A.DATA_FIM, $data_formato_sql) " .
+	"FROM TCC.EQUIPES_ORIENTADORES A, DAELT.PROFESSORES B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_ORIENTADOR = B.ID " .
+	"ORDER BY A.ORIENTACAO DESC) ORDER BY NOME;");
+$dbStatement5 = $dbHandle->prepare(
+	"SELECT B.ID, B.NOME, " .
+	       "DATE_FORMAT(A.DATA_LIMITE, $data_formato_sql), " .
+	       "DATE_FORMAT(A.DATA, $data_formato_sql), " .
+	       "FORCADO " .
+	"FROM TCC.EQUIPES_DOCUMENTOS A, TCC.DOCUMENTOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_DOCUMENTO = B.ID " .
+	"ORDER BY B.ID;");
+
+$dbStatement1->execute();
+
+my $aberto = 'ABERTO';
+my $datafim;
+my $ativo;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $equipe_id_saved = $dbLinha1[0];
+
+	$datafim = $dbLinha1[4] if ( defined $dbLinha1[4]);
+	$datafim = $aberto      if (!defined $dbLinha1[4]);
+
+	$ativo = 'ATIVADO'    if $dbLinha1[2] == 1;
+	$ativo = 'DESATIVADO' if $dbLinha1[2] == 0;
+
+	print "$dbLinha1[0]\t[$ativo]\t$dbLinha1[1]\t$dbLinha1[3]\t$datafim$crlf";
+
+	$dbStatement2->bind_param(1, $equipe_id_saved);
+	$dbStatement2->execute();
+
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		$datafim = $dbLinha2[4] if ( defined $dbLinha2[4]);
+		$datafim = $aberto      if (!defined $dbLinha2[4]);
+
+		print "\t1\t$dbLinha2[0]\t$dbLinha2[1]\t$dbLinha2[2]" .
+		      "\t$dbLinha2[3]\t$datafim$crlf";
+	}
+
+	$dbStatement3->bind_param(1, $equipe_id_saved);
+	$dbStatement3->execute();
+
+	while ( @dbLinha2 = $dbStatement3->fetchrow_array )
+	{
+		$datafim = $dbLinha2[2] if ( defined $dbLinha2[2]);
+		$datafim = $aberto      if (!defined $dbLinha2[2]);
+
+		print "\t2\t$dbLinha2[0]\t$dbLinha2[1]\t$datafim$crlf";
+	}
+
+	$dbStatement4->bind_param(1, $equipe_id_saved);
+	$dbStatement4->execute();
+
+	while ( @dbLinha2 = $dbStatement4->fetchrow_array )
+	{
+		$datafim = $dbLinha2[3] if ( defined $dbLinha2[3]);
+		$datafim = $aberto      if (!defined $dbLinha2[3]);
+
+		if ($dbLinha2[1] eq '0')
+		{
+			print "\t3\t$dbLinha2[0]\tCo-orientador" . 
+			      "\t$dbLinha2[2]\t$datafim$crlf";
+		}
+		else
+		{
+			print "\t3\t$dbLinha2[0]\tOrientador" . 
+			      "\t$dbLinha2[2]\t$datafim$crlf";
+		}
+	}
+
+	$dbStatement5->bind_param(1, $equipe_id_saved);
+	$dbStatement5->execute();
+
+	while ( @dbLinha2 = $dbStatement5->fetchrow_array )
+	{
+		$datafim = $dbLinha2[3] if ( defined $dbLinha2[3]);
+		$datafim = $aberto      if (!defined $dbLinha2[3]);
+
+		print "\t4\t$dbLinha2[0]\t$dbLinha2[1]\t$dbLinha2[2]\t$datafim$crlf"
+			if $dbLinha2[4] eq '0';
+		print "\t4\t$dbLinha2[0]\t$dbLinha2[1]\t$dbLinha2[2]\t$datafim" .
+		      "\tFORÇADO$crlf"
+			if $dbLinha2[4] ne '0';
+	}
+
+	print "\t5\t$dbLinha1[5]$crlf";
+	print "$crlf";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

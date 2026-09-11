@@ -1,0 +1,171 @@
+---
+id: add_professores
+title: add_professores
+sidebar_position: 20
+description: Insere novo professor em tabela, efetuando consistência de e-mails
+---
+
+# `add_professores.pl`
+
+Insere novo professor em tabela, efetuando consistência de e-mails
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl add_professores.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Insere novo professor em tabela, efetuando consistência de e-mails
+# mas não verifica existência do nome do usuário na tabela.
+# Não associa grupos.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Insere novo professor em tabela.\n";
+print STDERR "$aplicativo\::Não associa grupos.\n";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"INSERT INTO DAELT.PROFESSORES " .
+	"(ID, NOME, EMAIL, EMAIL2, EFETIVO, DATA_INICIO) " .
+	"VALUES (?, ?, ?, ?, ?, ?);");
+
+
+# definição de data de início para TODOS os professores
+my $professor_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome do professor
+print STDERR "Cód <spc> 'nome' <spc> e-mail1 <spc> e-mail2 <spc> " .
+             "efetivo (0/1) (CTRL+D aborta):";
+while (<STDIN>)
+{
+	(print STDERR "$aplicativo\::Entrada incorreta$crlf" and
+	 $dbHandle->disconnect() and die)
+		if (!/\s*(\S+)\s*'(.*)'(.*)/);
+
+	my $professor_id   = $1;
+	my $professor_nome = $2;
+	my @informacao     = split(' ', $3);
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 3);
+
+	my $professor_email1 = $informacao[0];
+	(print STDERR "$aplicativo\::Email 1 inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if $professor_email1 !~
+		   /^([\w\.\-\_]+)\@([\w\.\-\_]+[a-zA-Z]{2,})$|NULL/;
+
+	my $professor_email2 = $informacao[1];
+	(print STDERR "$aplicativo\::Email 2 inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if $professor_email2 !~
+		   /^([\w\.\-\_]+)\@([\w\.\-\_]+[a-zA-Z]{2,})$|NULL/;
+
+	my $professor_efetivo = $informacao[2];
+	(print STDERR "$aplicativo\::Efetivo inválido$crlf" and
+	 $dbHandle->disconnect() and die)
+		if $professor_efetivo !~ /[01]/;
+
+	$professor_email1 = undef if $professor_email1 eq 'NULL';
+	$professor_email2 = undef if $professor_email2 eq 'NULL';
+
+	$dbStatement->bind_param(1, $professor_id);
+	$dbStatement->bind_param(2, $professor_nome);
+	$dbStatement->bind_param(3, $professor_email1);
+	$dbStatement->bind_param(4, $professor_email2);
+	$dbStatement->bind_param(5, $professor_efetivo);
+	$dbStatement->bind_param(6, $professor_datainicio);
+
+	$dbStatement->execute()
+		or (print STDERR "$aplicativo\::Falha de inserção: " .
+		                 "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód <spc> 'nome' <spc> e-mail1 <spc> e-mail2 <spc> " .
+	             "efetivo (0/1) (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

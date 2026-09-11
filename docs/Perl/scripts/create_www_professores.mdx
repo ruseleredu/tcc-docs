@@ -1,0 +1,410 @@
+---
+id: create_www_professores
+title: create_www_professores
+sidebar_position: 55
+description: Apresenta listagem de professores.
+---
+
+# `create_www_professores.pl`
+
+Apresenta listagem de professores.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl create_www_professores.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de professores.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de professores.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle,
+    $dbStatement1, $dbStatement2, $dbStatement3,
+    $dbStatement4, $dbStatement5, $dbStatement6);
+my @dbLinha;
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT ID, NOME, EMAIL, EMAIL2 " .
+	"FROM DAELT.PROFESSORES " .
+	"WHERE ID !='0' AND DATA_FIM IS NULL AND EFETIVO != FALSE " .
+	"ORDER BY NOME;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT C.NOME " .
+	"FROM DAELT.PROFESSORES A, DAELT.PROFESSORES_GRUPOS B, DAELT.GRUPOS C " .
+	"WHERE A.ID = ? AND A.ID = B.ID_PROFESSOR AND B.ID_GRUPO = C.ID AND " .
+	      "B.DATA_FIM IS NULL " .
+	"ORDER BY C.NOME;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.INTERESSE " .
+	"FROM DAELT.PROFESSORES A, DAELT.PROFESSORES_INTERESSES B " .
+	"WHERE A.ID = ? AND A.ID = B.ID_PROFESSOR " .
+	"ORDER BY B.INTERESSE;");
+$dbStatement4 = $dbHandle->prepare(
+	"SELECT B.TEMA " .
+	"FROM DAELT.PROFESSORES A, DAELT.PROFESSORES_TEMAS B " .
+	"WHERE A.ID = ? AND A.ID = B.ID_PROFESSOR " .
+	"ORDER BY B.TEMA;");
+$dbStatement5 = $dbHandle->prepare(
+	"SELECT A.NOME, B.ID, B.NOME " .
+	"FROM DAELT.GRUPOS A, DAELT.PROFESSORES B " .
+	"WHERE A.ID_LIDER = B.ID AND A.ID_LIDER != '0';");
+$dbStatement6 = $dbHandle->prepare(
+	"SELECT ID, NOME, EMAIL, EMAIL2 " .
+	"FROM DAELT.PROFESSORES " .
+	"WHERE ID !='0' AND DATA_FIM IS NULL AND EFETIVO != TRUE " .
+	"ORDER BY NOME;");
+
+
+
+# impressão do preâmbulo (conforme página)
+print <<PREAMBULO_PAGINA;
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+
+<title>TCC/DAELT/UTFPr - Engenharia</title>
+
+<base href="https://nupet.daelt.ct.utfpr.edu.br/tcc/" />
+<!-- <base href="file:///media/DADOS/utfpr/tcc/www/" /> -->
+
+<link rel="stylesheet" type="text/css" href="css/meus-estilos.css" />
+
+</head>
+
+<body>
+
+<!-- ####### Novo bloco de informações: Apresentação do professor ######## --> 
+<div>
+<table id="tabelas-apresentacao">
+<tr>
+	<td>
+		<img style="width:250px" src="imagens/logo_UTFPR.jpg" alt="UTFPR" />
+	</td>
+
+	<td>
+		<b>Trabalho de Conclusão de Curso - Engenharia</b>
+	    	<p><a href="http://www.daelt.ct.utfpr.edu.br">Departamento Acadêmico de Eletrotécnica</a></p>
+		<p><a href="http://www.utfpr.edu.br">Universidade Tecnológica Federal do Paraná</a></p>
+		<p>Av. Sete de Setembro, 3165, Rebouças, 80230-910, Curitiba, Paraná, Brasil</p>
+	</td>
+</tr>
+</table>
+</div>
+
+
+<!-- ############# Nova bloco de informações: Menu de opções ############# --> 
+<div>
+<ul class="listas-menu">
+	<li><a href="engenharia/index.html">Engenharia</a></li>
+	<li><a href="tecnologia/index.html">Tecnologia</a></li>
+</ul>
+<br style="clear:both" />
+</div>
+
+
+PREAMBULO_PAGINA
+
+# imprime lista dos grupos
+$dbStatement5->execute();
+
+print <<PREAMBULO_LISTA_LIDERES;
+<!-- ########## Nova bloco de informações: Lista de professores ########## --> 
+<div>
+<h1><a id="lista_grupos">Lista de grupos do DAELT</a></h1>
+
+<p>Abaixo segue a lista de grupos, e seus respectivos líderes. Estes professores receberão as propostas de Metodologia Aplicada ao TCC e as distribuirão entre os membros de seus grupos para avaliação.</p>
+<table class="tabelas-professor">
+
+<tr>
+	<th>Grupo</th>
+	<th>Líder [Código]</th>
+</tr>
+
+PREAMBULO_LISTA_LIDERES
+
+while ( @dbLinha = $dbStatement5->fetchrow_array )
+{
+	# imprime grupos + líder
+	print "<tr>$crlf";
+	print "\t<td>$dbLinha[0]</td>";
+	print "\t<td>$dbLinha[2] [$dbLinha[1]]</td>";
+	print "</tr>$crlf";
+}
+
+print <<PERORACAO_LISTA_LIDERES;
+</table>
+
+</div>
+
+
+PERORACAO_LISTA_LIDERES
+
+
+# imprime lista dos professores
+$dbStatement1->execute();
+
+print <<PREAMBULO_LISTA_PROFESSORES;
+<!-- ########## Nova bloco de informações: Lista de professores ########## --> 
+<div>
+<h1><a id="lista_professores">Lista de professores do DAELT</a></h1>
+
+<p>Abaixo segue a lista de professores, suas áreas de atuação, o grupo a que pertence e sugestões de trabalhos que eles podem orientar. Recomenda-se que o aluno/grupo procure professores cujo área de interesse seja similar àquela na qual deseja desenvolver o TCC.</p>
+<table class="tabelas-professor">
+	<col width="25%" />
+	<col width="20%" />
+	<col width="20%" />
+	<col width="35%" />
+
+<tr>
+	<th>Professor [Código]</th>
+	<th>Grupo</th>
+	<th>Área de interesse</th>
+	<th>Tema para TCC</th>
+</tr>
+
+PREAMBULO_LISTA_PROFESSORES
+
+while ( @dbLinha = $dbStatement1->fetchrow_array )
+{
+	my $professor_id_saved = $dbLinha[0];
+
+	# imprime nome + emails
+	print "<tr>$crlf";
+	print "\t<td>$dbLinha[1] [$dbLinha[0]]";
+	print "<br /><span class = \"visual-emails\">" .
+	    embaralha_email($dbLinha[2]) . "</span>" if (defined $dbLinha[2]);
+	print "<br /><span class = \"visual-emails\">" .
+	    embaralha_email($dbLinha[3]) . "</span>" if (defined $dbLinha[3]);
+	print "</td>$crlf";
+
+	# imprime grupos
+	$dbStatement2->bind_param(1, $professor_id_saved);
+	$dbStatement2->execute();
+
+	print "\t<td>";
+	my $checa_existencia = 0;
+	while ( @dbLinha = $dbStatement2->fetchrow_array )
+	{
+		print "<ul>$crlf" if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "\t\t<li>$dbLinha[0]</li>$crlf";
+	}
+	print "\t</ul>" if $checa_existencia == 1;
+	print "</td>$crlf";
+
+	# imprime interesses
+	$dbStatement3->bind_param(1, $professor_id_saved);
+	$dbStatement3->execute();
+
+	print "\t<td>";
+	$checa_existencia = 0;
+	while ( @dbLinha = $dbStatement3->fetchrow_array )
+	{
+		print "<ul>$crlf" if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "\t\t<li>$dbLinha[0]</li>$crlf";
+	}
+	print "\t</ul>" if $checa_existencia == 1;
+	print "</td>$crlf";
+
+	# imprime temas
+	$dbStatement4->bind_param(1, $professor_id_saved);
+	$dbStatement4->execute();
+
+	print "\t<td>";
+	$checa_existencia = 0;
+	while ( @dbLinha = $dbStatement4->fetchrow_array )
+	{
+		print "<ul>$crlf" if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "\t\t<li>$dbLinha[0]</li>$crlf";
+	}
+	print "\t</ul>" if $checa_existencia == 1;
+	print "</td>$crlf</tr>$crlf";
+}
+
+print <<PERORACAO_LISTA_PROFESSORES;
+</table>
+
+</div>
+
+
+PERORACAO_LISTA_PROFESSORES
+
+
+# imprime lista dos professores
+$dbStatement6->execute();
+
+print <<PREAMBULO_LISTA_VISITANTES;
+<!-- ########## Nova bloco de informações: Lista de visitantes ########## --> 
+<div>
+<h1><a id="lista_visitantes">Lista de visitantes/colaboradores do DAELT</a></h1>
+
+<p>Abaixo segue a lista de visitantes/colaboradores, suas áreas de atuação, e o grupo do DAELT com o qual já colaboraram.</p>
+<table class="tabelas-professor">
+	<col width="50%" />
+	<col width="50%" />
+
+<tr>
+	<th>Visitante [Código]</th>
+	<th>Grupo</th>
+</tr>
+
+PREAMBULO_LISTA_VISITANTES
+
+while ( @dbLinha = $dbStatement6->fetchrow_array )
+{
+	my $professor_id_saved = $dbLinha[0];
+
+	# imprime nome + emails
+	print "<tr>$crlf";
+	print "\t<td>$dbLinha[1] [$dbLinha[0]]";
+	print "<br /><span class = \"visual-emails\">" .
+	    embaralha_email($dbLinha[2]) . "</span>" if (defined $dbLinha[2]);
+	print "<br /><span class = \"visual-emails\">" .
+	    embaralha_email($dbLinha[3]) . "</span>" if (defined $dbLinha[3]);
+	print "</td>$crlf";
+
+	# imprime grupos
+	$dbStatement2->bind_param(1, $professor_id_saved);
+	$dbStatement2->execute();
+
+	print "\t<td>";
+	my $checa_existencia = 0;
+	while ( @dbLinha = $dbStatement2->fetchrow_array )
+	{
+		print "<ul>$crlf" if $checa_existencia == 0;
+		$checa_existencia = 1;
+
+		print "\t\t<li>$dbLinha[0]</li>$crlf";
+	}
+	print "\t</ul>" if $checa_existencia == 1;
+	print "</td>$crlf</tr>$crlf";
+}
+
+print <<PERORACAO_LISTA_VISITANTES;
+</table>
+
+</div>
+
+
+PERORACAO_LISTA_VISITANTES
+
+
+# impressão da peroracao (conforme página)
+print <<PERORACAO;
+<!-- ############# Nova bloco de informações: Validações HTML ############ --> 
+<div>
+<p style="text-align:center">
+ <a href="https://validator.w3.org/check?uri=referer">
+    <img src="https://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" />
+ </a>
+
+ <a href="https://jigsaw.w3.org/css-validator/check/referer">
+    <img style="border:0;width:88px;height:31px" src="https://jigsaw.w3.org/css-validator/images/vcss" alt="CSS válido!" />
+ </a>
+</p>
+</div>
+
+
+</body>
+</html>
+PERORACAO
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+
+
+# -----------------------------------------------------------------------------
+# Embaralha email para evitar spam!
+# -----------------------------------------------------------------------------
+sub embaralha_email
+{
+	my $email = $_[0];
+
+	if ($email =~ /^([\w\.\-\_]+)\@([\w\.\-\_]+[a-zA-Z]{2,})$/)
+	{
+		my $nome = $1;
+		my $host = $2;
+		$host =~ s/\./ [dot] /g;
+		$email = $nome . " [at] " . $host;
+	}
+
+	return $email;
+}
+```

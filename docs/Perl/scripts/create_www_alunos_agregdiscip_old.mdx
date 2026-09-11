@@ -1,0 +1,334 @@
+---
+id: create_www_alunos_agregdiscip_old
+title: create_www_alunos_agregdiscip_old
+sidebar_position: 49
+description: Apresenta listagem de alunos.
+---
+
+# `create_www_alunos_agregdiscip_old.pl`
+
+Apresenta listagem de alunos.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-a` | Required |
+
+### Example
+
+```bash
+perl create_www_alunos_agregdiscip_old.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de alunos.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+my $aluno_agregdiscip = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:a:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+$aluno_agregdiscip = $opcoes{a} if defined $opcoes{a};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] ".
+	             "[-a <agregador de disciplina>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de alunos$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement1, $dbStatement2, $dbStatement3, $dbStatement4);
+my (@dbLinha1, @dbLinha2, @dbLinha3);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID_DISCIPLINA, A.ID_TURMA, B.ID_AGREGADOR, B.NOME " .
+	"FROM DAELT.ALUNOS_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B " .
+	"WHERE A.DATA_FIM IS NULL AND A.ID_DISCIPLINA = B.ID AND " .
+	      "B.ID_AGREGADOR = ? " .
+	"GROUP BY A.ID_DISCIPLINA, A.ID_TURMA " .
+	"ORDER BY NOME, A.ID_DISCIPLINA, A.ID_TURMA;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT RES.*, C.ID_EQUIPE FROM
+	   (SELECT A.ID, A.NOME
+	    FROM DAELT.ALUNOS A, DAELT.ALUNOS_DISCIPLINAS B
+	    WHERE A.ID = B.ID_ALUNO AND A.DATA_FIM IS NULL AND
+	          B.ID_DISCIPLINA = ? AND B.ID_TURMA = ? AND
+	          B.DATA_FIM IS NULL
+	    ORDER BY A.NOME) AS RES
+	 LEFT JOIN TCC.EQUIPES_ALUNOS C
+	 ON RES.ID = C.ID_ALUNO AND C.DATA_FIM IS NULL;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT COUNT(*) " .
+	"FROM TCC.EQUIPES_DOCUMENTOS " .
+	"WHERE ID_EQUIPE = ? AND DATA IS NULL;");
+$dbStatement4 = $dbHandle->prepare(
+	"SELECT NOTA " .
+	"FROM TCC.BANCAS_EQUIPES " .
+	"WHERE ID_EQUIPE = ? AND ID_TIPO IN (?, ?) " .
+	"ORDER BY NOTA DESC;");
+
+
+# definição da data atual
+my $dataatual = strftime "%Y-%02m-%02d", localtime;
+
+
+
+
+# impressão do preâmbulo (conforme página)
+print <<PREAMBULO_PAGINA;
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+
+<title>TCC/DAELT/UTFPr - Engenharia</title>
+
+<base href="https://nupet.daelt.ct.utfpr.edu.br/tcc/" />
+<!-- <base href="file:///media/DADOS/UTFPr/TCC/PáginaWWW/" /> -->
+
+<link rel="stylesheet" type="text/css" href="css/meus-estilos.css" />
+
+</head>
+
+<body>
+
+<!-- ####### Novo bloco de informações: Apresentação do professor ######## --> 
+<div>
+<table id="tabelas-apresentacao">
+<tr>
+	<td>
+		<img style="width:250px" src="imagens/logo_UTFPR.jpg" alt="UTFPR" />
+	</td>
+
+	<td>
+		<b>Trabalho de Conclusão de Curso - Engenharia</b>
+	    	<p><a href="http://www.daelt.ct.utfpr.edu.br">Departamento Acadêmico de Eletrotécnica</a></p>
+		<p><a href="http://www.utfpr.edu.br">Universidade Tecnológica Federal do Paraná</a></p>
+		<p>Av. Sete de Setembro, 3165, Rebouças, 80230-910, Curitiba, Paraná, Brasil</p>
+	</td>
+</tr>
+</table>
+</div>
+
+
+<!-- ############# Nova bloco de informações: Menu de opções ############# --> 
+<div>
+<ul class="listas-menu">
+	<li><a href="engenharia/index.html">Engenharia</a></li>
+	<li><a href="tecnologia/index.html">Tecnologia</a></li>
+</ul>
+<br style="clear:both" />
+</div>
+
+
+PREAMBULO_PAGINA
+
+# imprime lista das alunos
+$dbStatement1->bind_param(1, $aluno_agregdiscip);
+$dbStatement1->execute();
+
+print <<PREAMBULO_LISTA_ALUNOS;
+<!-- ########## Nova bloco de informações: Lista de alunos ########## --> 
+<div>
+<h1><a id="lista_equipes">Lista de alunos ABERTOS</a></h1>
+
+<p>Abaixo segue a lista das alunos de TCC abertos atualmente (matriculados) e suas respectivas notas.</p>
+<p>Esta é a nota que será lançada no sistema acadêmico. A falta de documentos implica em reprovação (nota zero)</p>
+
+PREAMBULO_LISTA_ALUNOS
+
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $id_disciplina = $dbLinha1[0];
+	my $id_turma      = $dbLinha1[1];
+
+print <<PREAMBULO_LISTA_ALUNOS_DISCIPLINAS;
+<p>Disciplina: <b>$dbLinha1[3]</b> ($id_disciplina) / Turma: <b>$id_turma</b></p>
+<table class="tabelas-aluno">
+	<col width="10%" />
+	<col width="50%" />
+	<col width="20%" />
+	<col width="20%" />
+
+<tr>
+	<th>Código</th>
+	<th>Nome</th>
+	<th>Nota</th>
+	<th>Situação</th>
+</tr>
+
+PREAMBULO_LISTA_ALUNOS_DISCIPLINAS
+
+	$dbStatement2->bind_param(1, $id_disciplina);
+	$dbStatement2->bind_param(2, $id_turma);
+	$dbStatement2->execute();
+
+	my $total_alunos = 0;
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		my $id_equipe = $dbLinha2[2];
+		my $nota      = 0;
+		my $situacao  = 'reprovado';
+
+		if (defined $id_equipe)
+		{
+			# checa se entregou todos os documentos
+			$dbStatement3->bind_param(1, $id_equipe);
+			$dbStatement3->execute();
+
+			my $contagem_documentos = 0;
+			while ( @dbLinha3 = $dbStatement3->fetchrow_array )
+			{
+				$contagem_documentos = $dbLinha3[0];
+			}
+
+			if ( $contagem_documentos == 0 )
+			{
+				# pega nota do aluno (primeira nota que aparecer)
+				$dbStatement4->bind_param(1, $id_equipe);
+				$dbStatement4->bind_param(2, '1') if $dbLinha1[2] eq 'MET';
+				$dbStatement4->bind_param(3, '2') if $dbLinha1[2] eq 'MET';
+				$dbStatement4->bind_param(2, '3') if $dbLinha1[2] eq 'TCC1';
+				$dbStatement4->bind_param(2, '4') if $dbLinha1[2] eq 'TCC2';
+				$dbStatement4->execute();
+
+				my $checa_existencia = 0;
+				while ( @dbLinha3 = $dbStatement4->fetchrow_array )
+				{
+					if ( $checa_existencia == 0 )
+					{
+						if ( defined $dbLinha3[0] )
+						{
+							$nota = $dbLinha3[0] + 0;
+						}
+						else
+						{
+							$nota = 'pendente';
+						}
+					}
+
+					$checa_existencia = 1;
+				}
+
+				$situacao = 'aprovado'
+				    if ( $nota ne 'pendente' && $nota >= 6.0 );
+			}
+			else
+			{
+				$nota = 'pendente';
+			}
+		}
+		else
+		{
+			$nota = 'sem equipe';
+		}
+
+		print "<tr class=\"alterna\">$crlf" if $total_alunos % 2 == 0;
+		print "<tr>$crlf"                   if $total_alunos % 2 != 0;
+		print "\t<td>$dbLinha2[0]</td>$crlf";
+		print "\t<td>$dbLinha2[1]</td>$crlf";
+		print "\t<td>$nota</td>$crlf";
+		print "\t<td>$situacao</td>$crlf";
+		print "</tr>$crlf";
+
+		$total_alunos++;
+	}
+
+print <<PERORACAO_LISTA_ALUNOS_DISCIPLINAS;
+</table>
+
+PERORACAO_LISTA_ALUNOS_DISCIPLINAS
+}
+
+print <<PERORACAO_LISTA_ALUNOS;
+</div>
+
+
+PERORACAO_LISTA_ALUNOS
+
+
+# impressão da peroracao (conforme página)
+print <<PERORACAO;
+<!-- ############# Nova bloco de informações: Validações HTML ############ --> 
+<div>
+<p style="text-align:center">
+ <a href="https://validator.w3.org/check?uri=referer">
+    <img src="https://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88" />
+ </a>
+
+ <a href="https://jigsaw.w3.org/css-validator/check/referer">
+    <img style="border:0;width:88px;height:31px" src="https://jigsaw.w3.org/css-validator/images/vcss" alt="CSS válido!" />
+ </a>
+</p>
+</div>
+
+
+</body>
+</html>
+PERORACAO
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

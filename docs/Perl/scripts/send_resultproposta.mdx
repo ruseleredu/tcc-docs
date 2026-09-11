@@ -1,0 +1,373 @@
+---
+id: send_resultproposta
+title: send_resultproposta
+sidebar_position: 83
+description: Envia emails de resultado de avaliação de proposta de TCC.
+---
+
+# `send_resultproposta.pl`
+
+Envia emails de resultado de avaliação de proposta de TCC.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+- `Mail::Sendmail`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-t` | No |
+
+### Example
+
+```bash
+perl send_resultproposta.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+use Mail::Sendmail qw(sendmail %mailcfg);
+
+# -----------------------------------------------------------------------------
+# Envia emails de resultado de avaliação de proposta de TCC.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição de servidor SMTP para envio de mensagens
+# $mailcfg{smtp} = [qw(spamfirewall2.utfpr.edu.br)];
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+
+my $tela         = 0;
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:t", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+
+$tela         = 1          if defined $opcoes{t};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-t]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Resultado de proposta de TCC.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT B.ID, B.TITULO, A.NOTA, E.NOME, E.EMAIL, E.EMAIL2 " .
+	"FROM TCC.BANCAS_EQUIPES A, TCC.EQUIPES B, TCC.EQUIPES_DISCIPLINAS C, " .
+	     "DAELT.DOMINIO_DISCIPLINAS D, DAELT.PROFESSORES E " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_TIPO = '1' AND A.ID_EQUIPE = B.ID AND " .
+	      "B.DATA_FIM IS NULL AND C.ID_EQUIPE = B.ID AND " .
+	      "C.DATA_FIM IS NULL AND C.ID_DISCIPLINA = D.ID AND " .
+	      "D.ID_RESPONSAVEL = E.ID;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT B.NOME, B.EMAIL " .
+	"FROM TCC.EQUIPES_ALUNOS A, DAELT.ALUNOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.DATA_FIM IS NULL AND A.ID_ALUNO = B.ID;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.NOME, B.EMAIL, B.EMAIL2 " .
+	"FROM TCC.EQUIPES_ORIENTADORES A, DAELT.PROFESSORES B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ORIENTACAO = 1 AND A.DATA_FIM IS NULL AND " .
+	      "A.ID_ORIENTADOR = B.ID;");
+
+
+# definição de data de início para TODAS as equipes
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome do aluno
+print STDERR "Cód equipe (CTRL+D aborta):";
+while (<STDIN>)
+{
+	(print STDERR "$aplicativo\::Entrada incorreta$crlf" and
+	 $dbHandle->disconnect() and die)
+		if (!/\s*(\S+)\s*/);
+
+	my $equipe_id = $1;
+
+	# carrega nomes/emails dos alunos
+	$dbStatement2->bind_param(1, $equipe_id);
+	$dbStatement2->execute();
+
+	my $nomes_alunos = "";
+	my $addrs_alunos = "";
+	my $existe_nomes = 0;
+	while ( @dbLinha = $dbStatement2->fetchrow_array )
+	{
+		if ( $existe_nomes==0 )
+		{
+			$nomes_alunos = $dbLinha[0] if $existe_nomes == 0;
+			$addrs_alunos = $dbLinha[1] if $existe_nomes == 0;
+
+			$existe_nomes = 1;
+		}
+		else
+		{
+			$nomes_alunos = $nomes_alunos . ", " . $dbLinha[0];
+			$addrs_alunos = $addrs_alunos . ", " . $dbLinha[1];
+		}
+	}
+
+	(print STDERR "$aplicativo\::Email de destino não existe$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ( !length($addrs_alunos) );
+
+	# carrega nomes/emails dos orientadores
+	$dbStatement3->bind_param(1, $equipe_id);
+	$dbStatement3->execute();
+
+	my $nomes_orientadores  = "";
+	my $addrs_orientadores = "";
+	$existe_nomes = 0;
+	while ( @dbLinha = $dbStatement3->fetchrow_array )
+	{
+		if ( $existe_nomes==0 )
+		{
+			$nomes_orientadores = $dbLinha[0] if $existe_nomes == 0;
+			$addrs_orientadores = $dbLinha[1] if $existe_nomes == 0;
+
+			$existe_nomes = 1;
+		}
+		else
+		{
+			$nomes_orientadores = $nomes_orientadores . ", " . $dbLinha[0];
+			$addrs_orientadores = $addrs_orientadores . ", " . $dbLinha[1];
+		}
+	}
+
+	(print STDERR "$aplicativo\::Email de destino não existe$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ( !length($addrs_orientadores) );
+
+	# busca dados da equipe/banca para email
+	$dbStatement1->bind_param(1, $equipe_id);
+	$dbStatement1->execute();
+
+	while ( @dbLinha = $dbStatement1->fetchrow_array )
+	{
+		my $email_body_orientadores;
+		my $email_body_alunos;
+
+		if ($dbLinha[2]>=6.0)
+		{
+			$email_body_orientadores = <<EMAIL_BODY;
+Prezado(s) orientador(es) $nomes_orientadores,
+
+A proposta:
+
+$equipe_id | $dbLinha[1]
+
+foi considerada APROVADA pela banca examinadora.
+
+Doravante, o(s) aluno(s) ($nomes_alunos) está(ão) apto(s) para realização do desenvolvimento teórico do trabalho (TCC1) no próximo semestre.
+
+Fico a disposição para qualquer esclarecimento.
+
+Att.,
+$dbLinha[3]
+Responsável pelo TCC/DAELT.
+
+PS: Favor acusar recebimento.
+EMAIL_BODY
+
+
+			$email_body_alunos = <<EMAIL_BODY;
+Prezado(s) aluno(s) $nomes_alunos,
+
+A proposta:
+
+$equipe_id | $dbLinha[1]
+
+foi considerada APROVADA pela banca examinadora.
+
+Solicito que retire(m) na secretaria as propostas devidamente corrigidas pela banca. Elas ficarão lá por um prazo de duas semanas, ao fim das quais serão destruídas.
+
+Fico a disposição para qualquer esclarecimento.
+
+Att.,
+$dbLinha[3]
+Responsável pelo TCC/DAELT.
+
+PS: Favor acusar recebimento.
+EMAIL_BODY
+		}
+		else
+		{
+			$email_body_orientadores = <<EMAIL_BODY;
+Prezado(s) orientador(es) $nomes_orientadores,
+
+A proposta:
+
+$equipe_id | $dbLinha[1]
+
+foi considerada REPROVADA.
+
+Os alunos ($nomes_alunos) contacta-lo(s)-ão para que V.Sa(s) organize(m) uma banca de avaliação da proposta revisada. Tal banca deve avaliar se a nova proposta pode ser desenvolvida pelos alunos como um trabalho de conclusão de curso. No site:
+
+http://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/metodologia.html
+
+consta a data-limite para entrega do resultado dessa avaliação, bem como a ficha de avaliação (2) para propostas que foram reprovadas.
+
+Fico a disposição para qualquer esclarecimento.
+
+Att.,
+$dbLinha[3]
+Responsável pelo TCC/DAELT.
+
+PS: Favor acusar recebimento.
+EMAIL_BODY
+
+
+			$email_body_alunos = <<EMAIL_BODY;
+Prezado(s) aluno(s) $nomes_alunos,
+
+A proposta:
+
+$equipe_id | $dbLinha[1]
+
+foi considerada REPROVADA pela banca examinadora.
+
+Contacte(m) seu(s) orientador(es) para revisão da proposta e organização uma defesa oral perante uma banca examinadora o mais breve possível. O prazo para eu receber a nota de avaliação de sua proposta consta no site:
+
+http://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/metodologia.html
+
+As propostas estão disponíveis na secretaria do DAELT para subsidiar sua revisão por um prazo de duas semanas, ao fim das quais ela será destruída.
+
+Fico a disposição para qualquer esclarecimento.
+
+Att.,
+$dbLinha[3]
+Responsável pelo TCC/DAELT.
+
+PS: Favor acusar recebimento.
+EMAIL_BODY
+		}
+
+		# prepara email do responsável pelo TCC
+		# pode ser usado em 'reply-to'
+		my $email_source;
+		if (defined $dbLinha[4] and defined $dbLinha[5])
+		{
+			$email_source = $dbLinha[4] . ", " . $dbLinha[5];
+		}
+		elsif (defined $dbLinha[4])
+		{
+			$email_source = $dbLinha[4];
+		}
+		elsif (defined $dbLinha[5])
+		{
+			$email_source = $dbLinha[5];
+		}
+
+		# envio dos emails
+		my %email = (
+			to             => $addrs_orientadores,
+			from           => 'mrosa@nupet.daelt.ct.utfpr.edu.br',
+			'reply-to'     => 'tcc.daelt.utfpr@gmail.com',
+			subject        => "Resultado de avaliação de proposta de TCC",
+		    message        => $email_body_orientadores,
+			'content-type' => 'text/plain; charset="utf-8"',
+		);
+
+		if ($tela ==0)
+		{
+			sendmail(%email)
+				or (print STDERR "$aplicativo\::Falha de envio: " .
+						         "$Mail::Sendmail::error$crlf" and
+						$dbHandle->disconnect() and die);
+
+			print STDERR "Sent to $addrs_orientadores " .
+				         "Result = $Mail::Sendmail::log$crlf";
+		}
+		else
+		{
+			print "----------------------------------------------> email$crlf";
+			print %email;
+			print $crlf;
+		}
+
+		%email = (
+		    to             => $addrs_alunos,
+		    from           => 'tcc@nupet.daelt.ct.utfpr.edu.br',
+		    'reply-to'     => 'tcc.daelt.utfpr@gmail.com',
+		    subject        => "Resultado de avaliação de proposta de TCC",
+		    message        => $email_body_alunos,
+		    'content-type' => 'text/plain; charset="utf-8"',
+		);
+
+		if ($tela == 0)
+		{
+			sendmail(%email)
+				or (print STDERR "$aplicativo\::Falha de envio: " .
+					             "$Mail::Sendmail::error$crlf" and
+					    $dbHandle->disconnect() and die);
+
+			print STDERR "Sent to $addrs_alunos " .
+			             "Result = $Mail::Sendmail::log$crlf";
+		}
+		else
+		{
+			print "----------------------------------------------> email$crlf";
+			print %email;
+			print $crlf;
+		}
+	}
+
+	print STDERR "Cód equipe (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

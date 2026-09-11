@@ -1,0 +1,180 @@
+---
+id: forall_agregador_docs
+title: forall_agregador_docs
+sidebar_position: 60
+description: Aplica agregados à equipe.
+---
+
+# `forall_agregador_docs.pl`
+
+Aplica agregados à equipe.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+| `-1` | Required |
+| `-2` | Required |
+
+### Example
+
+```bash
+perl forall_agregador_docs.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Aplica agregados à equipe.
+# Equipes sem docs, ou com docs fechados.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+my $equipe_disciplina = "";
+my $equipe_turma      = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f1:2:", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+$equipe_disciplina = $opcoes{1} if defined $opcoes{1};
+$equipe_turma      = $opcoes{2} if defined $opcoes{2};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Aplica agregados à equipe.$crlf";
+print STDERR "$aplicativo\::Equipes sem docs, ou com docs fechados.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT A.ID " .
+	"FROM ((TCC.EQUIPES A " .
+	        "INNER JOIN TCC.EQUIPES_DISCIPLINAS B ON A.ID = B.ID_EQUIPE) " .
+	        "LEFT JOIN TCC.EQUIPES_DOCUMENTOS C ON A.ID = C.ID_EQUIPE) " .
+	"WHERE B.ID_DISCIPLINA = ? AND A.DATA_FIM IS NULL AND " .
+	      "B.DATA_FIM IS NULL AND (C.ID IS NULL OR C.DATA IS NOT NULL) " .
+	"GROUP BY A.ID;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT COUNT(*) " .
+	"FROM TCC.EQUIPES_DOCUMENTOS " .
+	"WHERE ID_EQUIPE = ? AND DATA IS NULL;");
+$dbStatement3 = $dbHandle->prepare(
+	"INSERT INTO TCC.EQUIPES_DOCUMENTOS " .
+	"(ID_EQUIPE, ID_DOCUMENTO, DATA_LIMITE, FORCADO) " .
+	"SELECT ?, ID_DOCUMENTO, DATA_LIMITE_ATUAL, FALSE " .
+	"FROM TCC.AGREGADOR_DOCUMENTOS WHERE ID_AGREGADOR = ?;");
+
+
+# definição de data de início para TODOS os alunos
+my $equipe_datainicio = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+print STDERR "Cód disciplina <spc> cód agregador (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 2);
+
+	my $equipe_id_disciplina = $informacao[0];
+	my $equipe_id_agregador  = $informacao[1];
+
+	$dbStatement1->bind_param(1, $equipe_id_disciplina);
+	$dbStatement1->execute();
+
+	while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+	{
+		my $equipe_id_saved = $dbLinha1[0];
+
+		$dbStatement2->bind_param(1, $equipe_id_saved);
+		$dbStatement2->execute();
+
+		next if (@dbLinha2 = $dbStatement2->fetchrow_array) == 0;
+		$dbStatement2->fetchrow_array; # clearing $dbStatement2
+		next if $dbLinha2[0] != 0;
+
+		# equipe não tem documento, ou todos os eles estão fechados
+		$dbStatement3->bind_param(1, $equipe_id_saved);
+		$dbStatement3->bind_param(2, $equipe_id_agregador);
+
+		$dbStatement3->execute()
+			or (print STDERR "$aplicativo\::Falha de inserção: " .
+			                 "$DBI::errstr$crlf" and
+			    $dbHandle->disconnect() and die);
+	}
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód disciplina <spc> cód agregador (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

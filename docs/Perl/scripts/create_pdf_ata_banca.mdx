@@ -1,0 +1,369 @@
+---
+id: create_pdf_ata_banca
+title: create_pdf_ata_banca
+sidebar_position: 37
+description: Apresenta listagem de professores.
+---
+
+# `create_pdf_ata_banca.pl`
+
+Apresenta listagem de professores.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl create_pdf_ata_banca.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de professores.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Gera arquivo PDF contendo atas.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle,
+    $dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT B.ID, B.TITULO, A.DATA_APRESENTACAO " .
+	"FROM TCC.BANCAS_EQUIPES A, TCC.EQUIPES B " .
+	"WHERE A.ID_EQUIPE = B.ID AND A.ID_TIPO = 4 AND A.DATA_FIM IS NULL AND " .
+	      "B.DATA_FIM IS NULL " .
+	"ORDER BY A.DATA_APRESENTACAO, HORA_APRESENTACAO;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT B.NOME " .
+	"FROM TCC.EQUIPES_ALUNOS A, DAELT.ALUNOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_ALUNO = B.ID AND A.DATA_FIM IS NULL " .
+	"ORDER BY B.NOME;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.CURSO " .
+	"FROM TCC.EQUIPES_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_DISCIPLINA = B.ID AND " .
+	      "A.DATA_FIM IS NULL;");
+
+
+# declaracao de algumas funcoes
+sub get_data_extenso;
+sub get_data_superextenso;
+
+
+# impressão do preâmbulo (conforme página)
+print <<PREAMBULO_DOCUMENTO;
+\\documentclass[11pt,a4paper,notitlepage]{article}
+
+\\usepackage[brazil]{babel}          % pacote de hifenação para Brasil
+\\usepackage[latin1,utf8]{inputenc}  % tipo de caracter (acentuação)
+\\usepackage[T1]{fontenc}            % codificação de fontes
+
+\\usepackage{fullpage}
+\\usepackage{amsmath}
+\\usepackage{amsfonts}
+\\usepackage{amssymb}
+\\usepackage{graphicx}
+\\usepackage{icomma}
+\\usepackage{float}    % permite [H] de figure funcionar como deve!
+\\usepackage[top=15mm, bottom=20mm, left=30mm, right=15mm]{geometry}
+\\usepackage{setspace}
+
+\\pagestyle{empty}
+
+\\begin{document}
+
+PREAMBULO_DOCUMENTO
+
+# imprime 1 página por orientador/co-orientador
+$dbStatement1->execute();
+
+my $checa_existencia = 0;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	print "$crlf\\newpage$crlf$crlf" if $checa_existencia == 1;
+	$checa_existencia = 1;
+
+	my $equipe_id = $dbLinha1[0];
+	$equipe_id =~ s/_/\\_/g;
+
+	# ajuste de datas
+	my $data = $dbLinha1[2];
+
+	my $data_extenso      = get_data_extenso($data);
+	my $data_superextenso = get_data_superextenso($data);
+
+	$dbStatement3->bind_param(1, $dbLinha1[0]);
+	$dbStatement3->execute();
+
+	@dbLinha2 = $dbStatement3->fetchrow_array;
+	while ( $dbStatement3->fetchrow_array )
+	{
+	}
+
+print <<PREAMBULO_PAGINA;
+% ------------------------------- nova seção
+
+\\noindent Universidade Tecnológica Federal do Paraná\\\\
+Departamento Acadêmico de Eletrotécnica\\\\
+Curso de $dbLinha2[0]
+
+\\begin{doublespacing}
+
+\\begin{center}
+\\bfseries
+\\Large
+Ata de Avaliação de Trabalho de Conclusão de Curso
+\\end{center}
+
+$data_superextenso, no \\textit{Campus} de Curitiba da Universidade Tecnológica Federal do Paraná, reuniu-se a banca de avaliação de Trabalho de Conclusão de Curso composta pelos examinadores:
+
+\\begin{spacing}{2}
+\\begin{center}
+1) \\rule{9cm}{0.5pt}\\\\
+2) \\rule{9cm}{0.5pt}\\\\
+3) \\rule{9cm}{0.5pt}\\\\
+4) \\rule{9cm}{0.5pt}
+\\end{center}
+\\end{spacing}
+
+\\noindent para deliberar o trabalho intitulado
+
+\\begin{singlespacing}
+\\begin{center}
+$equipe_id | $dbLinha1[1]
+\\end{center}
+\\end{singlespacing}
+
+PREAMBULO_PAGINA
+
+	print "\\noindent realizado ";
+
+	$dbStatement2->bind_param(1, $dbLinha1[0]);
+	$dbStatement2->execute();
+
+	my @lista_alunos;
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		push @lista_alunos, $dbLinha2[0];
+	}
+
+	my $lista_alunosSize = scalar(@lista_alunos);
+	if ($lista_alunosSize==1 )
+	{
+		print "pelo aluno:$crlf" .
+		      "\\begin{singlespacing}$crlf" .
+		      "\\begin{center}$crlf" .
+		      "$lista_alunos[0]$crlf" .
+		      "\\end{center}$crlf" .
+		      "\\end{singlespacing}$crlf";
+	}
+	else
+	{
+		print "pelos alunos:$crlf" .
+		      "\\begin{singlespacing}$crlf" .
+		      "\\begin{center}$crlf";
+		for (my $i=0; $i<$lista_alunosSize-1; $i++)
+		{
+			print "$lista_alunos[$i]\\\\$crlf";
+		}
+		print "$lista_alunos[$lista_alunosSize-1]$crlf";
+		print "\\end{center}$crlf" .
+		      "\\end{singlespacing}$crlf";
+	}
+
+print <<PERORACAO_PAGINA;
+
+Como resultado da avaliação, o trabalho foi considerado \\rule{6cm}{0.5pt} com nota \\rule{6cm}{0.5pt}, lavrando-se então a presenta ata que, após ser lida e aprovada por todos os examinadores, foi por eles assinada.
+
+\\begin{flushright}
+Curitiba, $data_extenso.
+\\end{flushright}
+
+\\begin{spacing}{2}
+\\begin{center}
+1) \\rule{9cm}{0.5pt}\\\\
+2) \\rule{9cm}{0.5pt}\\\\
+3) \\rule{9cm}{0.5pt}\\\\
+4) \\rule{9cm}{0.5pt}
+\\end{center}
+\\end{spacing}
+
+\\end{doublespacing}
+PERORACAO_PAGINA
+}
+
+
+# impressão da peroracao (conforme página)
+print <<PERORACAO_DOCUMENTO;
+
+\\end{document}
+PERORACAO_DOCUMENTO
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+
+
+# -----------------------------------------------------------------------------
+# funções de manipulação de data
+# -----------------------------------------------------------------------------
+sub get_data_extenso()
+{
+	my $data = $_[0];
+	my @informacao = split('-', $data);
+	my $mes;
+
+	$mes = "janeiro"   if $informacao[1] == 1;
+	$mes = "fevereiro" if $informacao[1] == 2;
+	$mes = "março"     if $informacao[1] == 3;
+	$mes = "abril"     if $informacao[1] == 4;
+	$mes = "maio"      if $informacao[1] == 5;
+	$mes = "junho"     if $informacao[1] == 6;
+	$mes = "julho"     if $informacao[1] == 7;
+	$mes = "agosto"    if $informacao[1] == 8;
+	$mes = "setembro"  if $informacao[1] == 9;
+	$mes = "outubro"   if $informacao[1] == 10;
+	$mes = "novembro"  if $informacao[1] == 11;
+	$mes = "dezembro"  if $informacao[1] == 12;
+
+	return "$informacao[2] de $mes de $informacao[0]";
+}
+
+
+sub get_data_superextenso()
+{
+	my $data = $_[0];
+	my @informacao = split('-', $data);
+	my ($dia, $mes, $ano, $ano_numerico);
+
+	$dia = "Ao primeiro dia"         if $informacao[2] == 1;
+	$dia = "Aos dois dias"           if $informacao[2] == 2;
+	$dia = "Aos três dias"           if $informacao[2] == 3;
+	$dia = "Aos quatro dias"         if $informacao[2] == 4;
+	$dia = "Aos cinco dias"          if $informacao[2] == 5;
+	$dia = "Aos seis dias"           if $informacao[2] == 6;
+	$dia = "Aos sete dias"           if $informacao[2] == 7;
+	$dia = "Aos oito dias"           if $informacao[2] == 8;
+	$dia = "Aos nove dias"           if $informacao[2] == 9;
+
+	$dia = "Aos dez dias"            if $informacao[2] == 10;
+	$dia = "Aos onze dias"           if $informacao[2] == 11;
+	$dia = "Aos doze dias"           if $informacao[2] == 12;
+	$dia = "Aos treze dias"          if $informacao[2] == 13;
+	$dia = "Aos quatorze dias"       if $informacao[2] == 14;
+	$dia = "Aos quinze dias"         if $informacao[2] == 15;
+	$dia = "Aos dezesseis dias"      if $informacao[2] == 16;
+	$dia = "Aos dezessete dias"      if $informacao[2] == 17;
+	$dia = "Aos dezoito dias"        if $informacao[2] == 18;
+	$dia = "Aos dezenove dias"       if $informacao[2] == 19;
+
+	$dia = "Aos vinte dias"          if $informacao[2] == 20;
+	$dia = "Aos vinte e um dias"     if $informacao[2] == 21;
+	$dia = "Aos vinte e dois dias"   if $informacao[2] == 22;
+	$dia = "Aos vinte e três dias"   if $informacao[2] == 23;
+	$dia = "Aos vinte e quatro dias" if $informacao[2] == 24;
+	$dia = "Aos vinte e cinco dias"  if $informacao[2] == 25;
+	$dia = "Aos vinte e seis dias"   if $informacao[2] == 26;
+	$dia = "Aos vinte e sete dias"   if $informacao[2] == 27;
+	$dia = "Aos vinte e oito dias"   if $informacao[2] == 28;
+	$dia = "Aos vinte e nove dias"   if $informacao[2] == 29;
+
+	$dia = "Aos trinta dias"         if $informacao[2] == 30;
+	$dia = "Aos trinta e um dias"    if $informacao[2] == 31;
+	$dia = "Aos trinta e dois dias"  if $informacao[2] == 32;
+
+	$mes = "janeiro"   if $informacao[1] == 1;
+	$mes = "fevereiro" if $informacao[1] == 2;
+	$mes = "março"     if $informacao[1] == 3;
+	$mes = "abril"     if $informacao[1] == 4;
+	$mes = "maio"      if $informacao[1] == 5;
+	$mes = "junho"     if $informacao[1] == 6;
+	$mes = "julho"     if $informacao[1] == 7;
+	$mes = "agosto"    if $informacao[1] == 8;
+	$mes = "setembro"  if $informacao[1] == 9;
+	$mes = "outubro"   if $informacao[1] == 10;
+	$mes = "novembro"  if $informacao[1] == 11;
+	$mes = "dezembro"  if $informacao[1] == 12;
+
+	$ano_numerico = $informacao[0] - 2000;
+
+	$ano = "dez"        if $ano_numerico == 10;
+	$ano = "onze"       if $ano_numerico == 11;
+	$ano = "doze"       if $ano_numerico == 12;
+	$ano = "treze"      if $ano_numerico == 13;
+	$ano = "quatorze"   if $ano_numerico == 14;
+	$ano = "quinze"     if $ano_numerico == 15;
+	$ano = "dezesseis"  if $ano_numerico == 16;
+	$ano = "dezessete"  if $ano_numerico == 17;
+	$ano = "dezoito"    if $ano_numerico == 18;
+	$ano = "dezenove"   if $ano_numerico == 19;
+	$ano = "vinte"      if $ano_numerico == 20;
+
+	return "$dia do mês de $mes de dois mil e $ano";
+}
+```

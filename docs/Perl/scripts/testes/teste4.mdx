@@ -1,0 +1,33 @@
+---
+id: teste4
+title: teste4
+sidebar_position: 87
+description: use strict;
+---
+
+# `teste4.pl`
+
+use strict;
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $texto = "  1  '2 teste'  3 ";
+
+print join(':', split(/'\w'/, $texto));
+print "\n";
+
+$texto =~ /(.*)'(.*)'(.*)/;
+print "$1,$2,$3\n";
+
+$texto =~ /\s*(\S+)\s*'(.*)'\s*(\S+)\s*/;
+print "$1,$2,$3\n";
+```

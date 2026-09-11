@@ -1,0 +1,201 @@
+---
+title: Usar Perl com Docker
+description: Guia prático para rodar Perl em containers Docker
+---
+
+# Usar Perl com Docker
+
+Este guia mostra como rodar **scripts Perl** dentro de containers Docker, usando a imagem oficial `perl` ou criando um ambiente personalizado.
+
+---
+
+## 🐳 Usando a imagem oficial Perl
+
+A forma mais simples é usar a imagem oficial `perl:latest` disponível no Docker Hub.
+
+### Verificar versão do Perl
+
+```bash
+docker run --rm perl:latest perl -v
+```
+
+### Rodar um script Perl
+
+Se você tiver um script `test.pl` no diretório atual:
+
+```bash
+docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app perl:latest perl test.pl
+```
+
+- `-v $(pwd):/usr/src/app` monta o diretório atual dentro do container.
+- `-w /usr/src/app` define o diretório de trabalho.
+- `perl test.pl` executa o script.
+
+---
+
+## 📦 Criando um Dockerfile personalizado
+
+Se você quiser instalar módulos CPAN e copiar seus scripts para dentro da imagem:
+
+```dockerfile
+FROM perl:latest
+
+# Instala cpanminus e módulos necessários
+RUN cpanm --notest JSON DBI LWP::UserAgent
+
+WORKDIR /usr/src/app
+
+COPY . .
+
+CMD ["perl", "add_alunos.pl"]
+```
+
+Build da imagem:
+
+```bash
+docker build -t perl-scripts .
+```
+
+Rodar:
+
+```bash
+docker run --rm perl-scripts
+```
+
+---
+
+## ▶️ Usando docker-compose com múltiplos serviços
+
+Você pode definir vários serviços, cada um rodando um script diferente:
+
+```yaml
+version: "3.9"
+services:
+  add_alunos:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl add_alunos.pl
+
+  check_alunos:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl check_alunos.pl
+
+  list_professores:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl list_professores.pl
+```
+
+Rodar um serviço específico:
+
+```bash
+docker-compose run --rm add_alunos
+docker-compose run --rm check_alunos
+docker-compose run --rm list_professores
+```
+
+Se você tem vários scripts Perl e quer rodar cada um como um serviço separado via **docker-compose**, pode estruturar o `docker-compose.yml` com múltiplos serviços, cada um apontando para um script específico. Assim você chama apenas o serviço desejado.
+
+---
+
+## 📦 Exemplo de `docker-compose.yml`
+
+```yaml
+version: "3.9"
+services:
+  add_alunos:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl add_alunos.pl
+
+  check_alunos:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl check_alunos.pl
+
+  create_www_alunos:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl create_www_alunos.pl
+
+  list_professores:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    command: perl list_professores.pl
+```
+
+---
+
+## ▶️ Como usar
+
+- Para rodar o serviço `add_alunos`:
+
+  ```bash
+  docker-compose run --rm add_alunos
+  ```
+
+- Para rodar o serviço `check_alunos`:
+
+  ```bash
+  docker-compose run --rm check_alunos
+  ```
+
+- Para rodar o serviço `create_www_alunos`:
+
+  ```bash
+  docker-compose run --rm create_www_alunos
+  ```
+
+- Para rodar o serviço `list_professores`:
+  ```bash
+  docker-compose run --rm list_professores
+  ```
+
+---
+
+## 🔑 Dicas
+
+- Você pode adicionar quantos serviços quiser, cada um com seu script.
+- Se vários scripts compartilham dependências CPAN, considere criar um **Dockerfile** que instale os módulos necessários e usar essa imagem em todos os serviços.
+- Também pode definir um serviço “genérico” e passar o script como argumento:
+  ```yaml
+  perl-runner:
+    image: perl:latest
+    volumes:
+      - ./scripts:/usr/src/app
+    working_dir: /usr/src/app
+    entrypoint: ["perl"]
+  ```
+  E rodar qualquer script:
+  ```bash
+  docker-compose run --rm perl-runner add_alunos.pl
+  ```
+
+---
+
+## ✅ Resumo
+
+- Use a imagem oficial `perl:latest` para rodar scripts rapidamente.
+- Crie um `Dockerfile` se precisar instalar módulos CPAN.
+- Use `docker-compose` para organizar múltiplos scripts como serviços.
+
+---
+
+👉 Explore Perl no Docker, veja imagem oficial Perl ou aprenda a usar CPAN no Docker.
+
+Esse arquivo pode ser colocado em `docs/perl-docker.mdx` dentro do seu projeto Docusaurus. Assim você terá a documentação organizada em português para rodar Perl via Docker.

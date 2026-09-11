@@ -1,0 +1,127 @@
+---
+id: list_email_orientadores_abertos
+title: list_email_orientadores_abertos
+sidebar_position: 71
+description: Apresenta listagem de bancas.
+---
+
+# `list_email_orientadores_abertos.pl`
+
+Apresenta listagem de bancas.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-a` | Required |
+
+### Example
+
+```bash
+perl list_email_orientadores_abertos.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de bancas.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+my $data_formato_sql = "'%d/%m/%Y'";
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+my $agregdiscip = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:a:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+$agregdiscip = $opcoes{a} if defined $opcoes{a};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] " .
+	             "[-a <agregador de disciplinas>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta listagem de emails de alunos.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle);
+my ($dbStatement);
+my (@dbLinha);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"SELECT E.EMAIL, E.EMAIL2 " .
+	"FROM TCC.EQUIPES A, TCC.EQUIPES_DISCIPLINAS B, " .
+	     "DAELT.DOMINIO_DISCIPLINAS C, TCC.EQUIPES_ORIENTADORES D, " .
+	     "DAELT.PROFESSORES E " .
+	"WHERE A.ID = B.ID_EQUIPE AND A.DATA_FIM IS NULL AND " .
+	      "B.DATA_FIM IS NULL AND B.ID_DISCIPLINA = C.ID AND " .
+	      "C.ID_AGREGADOR = ? AND A.ID = D.ID_EQUIPE AND " .
+	      "D.DATA_FIM IS NULL AND D.ID_ORIENTADOR = E.ID AND E.EFETIVO = 1 " .
+	"GROUP BY E.NOME");
+
+$dbStatement->bind_param(1, $agregdiscip);
+$dbStatement->execute();
+
+while ( @dbLinha = $dbStatement->fetchrow_array )
+{
+	printf "$dbLinha[0], " if defined $dbLinha[0];
+	printf "$dbLinha[1], " if defined $dbLinha[1];
+}
+print "$crlf";
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

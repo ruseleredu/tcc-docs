@@ -1,0 +1,156 @@
+---
+id: check_alunos
+title: check_alunos
+sidebar_position: 28
+description: Verifica se existem alunos
+---
+
+# `check_alunos.pl`
+
+Verifica se existem alunos
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl check_alunos.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Verifica se existem alunos
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Checa existência de nomes similares.$crlf";
+
+
+# obtém nome do aluno
+print "Nome do aluno:";
+my $aluno_nome = <STDIN>;
+$aluno_nome =~ s/^\s*(.*?)\s*$/$1/;
+die "$aplicativo\::Digite um nome válido de aluno"
+	if length($aluno_nome)==0;
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT ID, NOME, EMAIL, DATA_INICIO, DATA_FIM " .
+	"FROM DAELT.ALUNOS WHERE UPPER(NOME) LIKE UPPER(?);");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT ID_DISCIPLINA, ID_TURMA, DATA_INICIO, DATA_FIM " .
+	"FROM DAELT.ALUNOS_DISCIPLINAS WHERE ID_ALUNO = (?);");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT A.ID_EQUIPE, A.DATA_INICIO, A.DATA_FIM, B.TITULO " .
+	"FROM TCC.EQUIPES_ALUNOS AS A, TCC.EQUIPES AS B " .
+	"WHERE A.ID_ALUNO = ? AND A.ID_EQUIPE = B.ID ORDER BY A.ID_EQUIPE;");
+
+$dbStatement1->bind_param(1, "%$aluno_nome%");
+$dbStatement1->execute();
+
+my $aberto = 'ABERTO';
+my $datafim;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $aluno_id_saved = $dbLinha1[0];
+
+	$datafim = $dbLinha1[4] if ( defined $dbLinha1[4]);
+	$datafim = $aberto      if (!defined $dbLinha1[4]);
+
+	print "$dbLinha1[0]\t$dbLinha1[1]\t$dbLinha1[2]\t$dbLinha1[3]\t" .
+	      "$datafim$crlf";
+
+	$dbStatement2->bind_param(1, $aluno_id_saved);
+	$dbStatement2->execute();
+
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		$datafim = $dbLinha2[3] if ( defined $dbLinha2[3]);
+		$datafim = $aberto      if (!defined $dbLinha2[3]);
+
+		print "\t$dbLinha2[0]\t$dbLinha2[1]\t$dbLinha2[2]\t$datafim";
+	}
+	print "$crlf";
+
+	$dbStatement3->bind_param(1, $aluno_id_saved);
+	$dbStatement3->execute();
+
+	while ( @dbLinha2 = $dbStatement3->fetchrow_array )
+	{
+		$datafim = $dbLinha2[2] if ( defined $dbLinha2[2]);
+		$datafim = $aberto      if (!defined $dbLinha2[2]);
+
+		print "\t$dbLinha2[1]\t$datafim\t$dbLinha2[0]\t$dbLinha2[3]$crlf";
+	}
+	print "$crlf";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

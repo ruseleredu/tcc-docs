@@ -1,0 +1,110 @@
+---
+id: list_grupos
+title: list_grupos
+sidebar_position: 75
+description: Apresenta todos os grupos (e respectivos lideres)
+---
+
+# `list_grupos.pl`
+
+Apresenta todos os grupos (e respectivos lideres)
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+
+### Example
+
+```bash
+perl list_grupos.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta todos os grupos (e respectivos lideres)
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Apresenta todos os grupos " .
+             "(e respectivos lideres).$crlf";
+
+
+# conexão com banco de dados
+my $dbHandle;
+my $dbStatement;
+my @dbLinha;
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"SELECT A.ID, A.NOME, B.ID, B.NOME FROM DAELT.GRUPOS A, " .
+	"DAELT.PROFESSORES B WHERE A.ID_LIDER = B.ID;");
+$dbStatement->execute();
+
+while ( @dbLinha = $dbStatement->fetchrow_array )
+{
+	print "$dbLinha[0]\t$dbLinha[1]\t$dbLinha[2]\t$dbLinha[3]\t$crlf";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+```

@@ -1,0 +1,140 @@
+---
+id: delete_bancas_professores
+title: delete_bancas_professores
+sidebar_position: 57
+description: Remove os professores de uma banca
+---
+
+# `delete_bancas_professores.pl`
+
+Remove os professores de uma banca
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+- `POSIX`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-f` | No |
+
+### Example
+
+```bash
+perl delete_bancas_professores.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+use POSIX qw(strftime);
+
+# -----------------------------------------------------------------------------
+# Remove os professores de uma banca
+# Banca pode estar aberta ou fechada
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host         = "localhost";
+my $database     = "DAELT";
+my $usuario      = "";
+my $senha        = "";
+my $final_commit = 0;
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:f", \%opcoes);
+
+$crlf         = "\r\n"     if defined $opcoes{w};
+$usuario      = $opcoes{u} if defined $opcoes{u};
+$senha        = $opcoes{p} if defined $opcoes{p};
+$final_commit = 1          if defined $opcoes{f};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] [-f]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Remove os professores de uma banca.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle, $dbStatement);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement = $dbHandle->prepare(
+	"DELETE TCC.BANCAS_PROFESSORES B " .
+	"FROM TCC.BANCAS_EQUIPES A, TCC.BANCAS_PROFESSORES B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_TIPO = ? AND A.ID = B.ID_BANCA;");
+
+
+# definição de data de início para TODAS as bancas
+my $banca_datafim = strftime "%Y-%02m-%02d", localtime;
+
+
+# obtém nome da equipe
+	print STDERR "Cód equipe <spc> tipo banca " .
+	             "(1-prop/2-defesa prop/3-tcc1/4-tcc2 (CTRL+D aborta):";
+while (<STDIN>)
+{
+	my @informacao = split(' ');
+
+	my $informacaoSize = scalar(@informacao);
+	(print STDERR "$aplicativo\::Número de parâmetros incorretos$crlf" and
+	 $dbHandle->disconnect() and die)
+		if ($informacaoSize != 2);
+
+	$dbStatement->bind_param(1, $informacao[0]);
+	$dbStatement->bind_param(2, $informacao[1]);
+
+	$dbStatement->execute()
+		or (print "$aplicativo\::Falha de fechamento: " .
+		          "$DBI::errstr$crlf" and
+		    $dbHandle->disconnect() and die);
+
+	$dbHandle->commit() if $final_commit==0;
+
+	print STDERR "Cód equipe <spc> tipo banca " .
+	             "(1-prop/2-defesa prop/3-tcc1/4-tcc2 (CTRL+D aborta):";
+}
+
+
+# desconexão com banco de dados
+$dbHandle->commit() if $final_commit==1;
+$dbHandle->disconnect();
+exit 0;
+```

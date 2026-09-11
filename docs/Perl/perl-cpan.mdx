@@ -1,0 +1,146 @@
+---
+title: Instalar Perl e CPAN no Ubuntu
+description: Guia passo a passo para instalar Perl e módulos CPAN no Ubuntu
+---
+
+# Instalar Perl e CPAN no Ubuntu
+
+Este guia mostra como instalar o **Perl** no Ubuntu, verificar se está funcionando e configurar o **CPAN** para instalar módulos adicionais.
+
+---
+
+## 🛠️ Instalar Perl
+
+1. Atualize os pacotes:
+
+   ```bash
+   sudo apt update
+   ```
+
+2. Instale o Perl:
+
+   ```bash
+   sudo apt install perl
+   ```
+
+3. Verifique a instalação:
+   ```bash
+   perl -v
+   ```
+   Isso exibirá a versão instalada do Perl.
+
+---
+
+## 🧪 Testar Perl
+
+Você pode testar rapidamente com um comando inline:
+
+```bash
+perl -e 'print "Hello, Perl!\n";'
+```
+
+Saída esperada:
+
+```
+Hello, Perl!
+```
+
+Ou crie um arquivo `test.pl`:
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+print "Perl está funcionando!\n";
+```
+
+Torne-o executável e rode:
+
+```bash
+chmod +x test.pl
+./test.pl
+```
+
+---
+
+## ⚙️ Instalar CPAN
+
+1. Atualize os pacotes:
+
+   ```bash
+   sudo apt update
+   ```
+
+2. Instale o cliente CPAN (recomendado usar `cpanminus`):
+   ```bash
+   sudo apt install cpanminus
+   ```
+
+---
+
+## 📦 Instalar um módulo CPAN
+
+Exemplo: instalar o módulo **JSON**.
+
+```bash
+cpanm JSON
+```
+
+---
+
+## 🧪 Testar módulo CPAN
+
+Crie um arquivo `test_json.pl`:
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use JSON;
+
+my $data = { nome => "Ubuntu", linguagem => "Perl" };
+my $json_text = encode_json($data);
+
+print "Saída JSON: $json_text\n";
+```
+
+Execute:
+
+```bash
+perl test_json.pl
+```
+
+Saída esperada:
+
+```
+Saída JSON: {"nome":"Ubuntu","linguagem":"Perl"}
+```
+
+---
+
+## 🔑 Dicas úteis
+
+- Instalar qualquer módulo:
+
+  ```bash
+  cpanm Nome::Do::Modulo
+  ```
+
+- Atualizar o próprio `cpanminus`:
+
+  ```bash
+  cpanm --self-upgrade
+  ```
+
+- Usar o shell tradicional do CPAN:
+  ```bash
+  sudo perl -MCPAN -e shell
+  install Nome::Do::Modulo
+  ```
+
+---
+
+👉 Explore mais sobre Perl básico, veja exemplos de scripts Perl ou aprofunde-se em módulos CPAN.
+
+---

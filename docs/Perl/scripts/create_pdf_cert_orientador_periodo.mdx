@@ -1,0 +1,351 @@
+---
+id: create_pdf_cert_orientador_periodo
+title: create_pdf_cert_orientador_periodo
+sidebar_position: 41
+description: Apresenta listagem de professores.
+---
+
+# `create_pdf_cert_orientador_periodo.pl`
+
+Apresenta listagem de professores.
+
+## Overview
+
+This page was generated automatically from the Perl source file.
+
+## Perl Modules
+
+The script uses the following modules:
+
+- `DBI`
+- `Getopt::Std`
+
+## Database
+
+- **Database interface:** MySQL via Perl DBI
+
+## Command-Line Options
+
+| Option | Argument |
+|---|---|
+| `-w` | No |
+| `-h` | No |
+| `-u` | Required |
+| `-p` | Required |
+| `-1` | Required |
+| `-2` | Required |
+| `-3` | Required |
+
+### Example
+
+```bash
+perl create_pdf_cert_orientador_periodo.pl -h
+```
+
+## Source Code
+
+```perl
+#!/usr/bin/perl
+use strict;
+use warnings;
+use DBI;
+use Getopt::Std;
+
+# -----------------------------------------------------------------------------
+# Apresenta listagem de professores.
+# -----------------------------------------------------------------------------
+$|++;
+my $crlf = "\n";
+my $aplicativo = $0;
+
+
+# definição para acesso do banco (valores default)
+my $host     = "localhost";
+my $database = "DAELT";
+my $usuario  = "";
+my $senha    = "";
+
+my $banca_inicio = "2011-08-01";
+my $banca_fim    = "2011-12-30";
+my $semestre_fim = "2011-12-30";
+
+
+# Recuperação dos parâmetros de entrada (via shell)
+my %opcoes=();
+getopts("whu:p:1:2:3:", \%opcoes);
+
+$crlf    = "\r\n"     if defined $opcoes{w};
+$usuario = $opcoes{u} if defined $opcoes{u};
+$senha   = $opcoes{p} if defined $opcoes{p};
+
+$banca_inicio = $opcoes{1} if defined $opcoes{1};
+$banca_fim    = $opcoes{2} if defined $opcoes{2};
+$semestre_fim = $opcoes{3} if defined $opcoes{3};
+
+if (defined $opcoes{h})
+{
+	print STDERR "$aplicativo [-w] [-u <usuario>] [-p <senha>] " . 
+	             "[-1 <YYYY-MM-DD> inicial] [-2 <YYYY-MM-DD> final] " .
+		     "[-3 <YYYY-MM-DD> fim do semestre]$crlf";
+	exit 0;
+}
+
+
+# apresentação do programa
+print STDERR "$aplicativo\::Gera arquivo PDF contendo certificados " . 
+             "em um período específico.$crlf";
+
+
+# conexão com banco de dados
+my ($dbHandle,
+    $dbStatement1, $dbStatement2, $dbStatement3);
+my (@dbLinha1, @dbLinha2);
+
+$dbHandle = DBI->connect("DBI:mysql:database=$database;host=$host",
+                         $usuario, $senha,
+                         {PrintError => 0, AutoCommit => 0})
+	or die "$aplicativo\::Falha de conexão ao banco de dados: $DBI::errstr";
+
+$dbStatement1 = $dbHandle->prepare(
+	"SELECT B.ID, B.TITULO, D.NOME, C.ORIENTACAO, A.DATA_APRESENTACAO, " .
+	       "C.DATA_INICIO, C.DATA_FIM " .
+	"FROM TCC.BANCAS_EQUIPES A, TCC.EQUIPES B, TCC.EQUIPES_ORIENTADORES C, " .
+	     "DAELT.PROFESSORES D " .
+	"WHERE A.ID_EQUIPE = B.ID AND A.ID_TIPO = 4 AND " .
+	      "A.DATA_APRESENTACAO BETWEEN CAST('$banca_inicio' AS DATE) AND " .
+	                                  "CAST('$banca_fim'    AS DATE) AND " .
+	      "B.ID = C.ID_EQUIPE AND " .
+	      "B.DATA_INICIO <= A.DATA_APRESENTACAO AND " .
+	      "(B.DATA_FIM IS NULL OR B.DATA_FIM >= A.DATA_APRESENTACAO) AND " .
+	      "C.ID_ORIENTADOR = D.ID AND " .
+	      "C.DATA_INICIO <= A.DATA_APRESENTACAO AND " .
+	      "(C.DATA_FIM IS NULL OR C.DATA_FIM >= A.DATA_APRESENTACAO) " .
+	"ORDER BY A.DATA_APRESENTACAO, A.HORA_APRESENTACAO;");
+$dbStatement2 = $dbHandle->prepare(
+	"SELECT B.NOME " .
+	"FROM TCC.EQUIPES_ALUNOS A, DAELT.ALUNOS B " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_ALUNO = B.ID AND " .
+	      "A.DATA_INICIO <= ? AND (A.DATA_FIM IS NULL OR A.DATA_FIM >= ?) " .
+	"ORDER BY B.NOME;");
+$dbStatement3 = $dbHandle->prepare(
+	"SELECT B.CURSO, C1.NOME, C2.NOME " .
+	"FROM TCC.EQUIPES_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B, " .
+	     "DAELT.PROFESSORES C1, DAELT.PROFESSORES C2 " .
+	"WHERE A.ID_EQUIPE = ? AND A.ID_DISCIPLINA = B.ID AND " . 
+	      "B.ID_RESPONSAVEL = C1.ID AND B.ID_COORDENADOR = C2.ID " .
+	      "ORDER BY A.DATA_INICIO DESC");
+			
+#$dbStatement3 = $dbHandle->prepare(
+#	"SELECT B.CURSO, C1.NOME, C2.NOME " .
+#	"FROM TCC.EQUIPES_DISCIPLINAS A, DAELT.DOMINIO_DISCIPLINAS B, " .
+#	     "DAELT.PROFESSORES C1, DAELT.PROFESSORES C2 " .
+#	"WHERE A.ID_EQUIPE = ? AND A.ID_DISCIPLINA = B.ID AND " . 
+#	      "B.ID_RESPONSAVEL = C1.ID AND B.ID_COORDENADOR = C2.ID AND " .
+#	      "A.DATA_INICIO <= ? AND (A.DATA_FIM IS NULL OR A.DATA_FIM >= ?);");
+
+
+# declaracao de algumas funcoes
+sub get_data_extenso;
+sub get_data_normal;
+
+
+# impressão do preâmbulo (conforme página)
+# top=45mm para alguns formulários e 53mm para outros
+print <<PREAMBULO_DOCUMENTO;
+\\documentclass[11pt,a4paper,notitlepage]{article}
+
+\\usepackage[brazil]{babel}          % pacote de hifenação para Brasil
+\\usepackage[latin1,utf8]{inputenc}  % tipo de caracter (acentuação)
+\\usepackage[T1]{fontenc}            % codificação de fontes
+
+\\usepackage{fullpage}
+\\usepackage{amsmath}
+\\usepackage{amsfonts}
+\\usepackage{amssymb}
+\\usepackage{graphicx}
+\\usepackage{icomma}
+\\usepackage{float}    % permite [H] de figure funcionar como deve!
+\\usepackage[top=53mm, bottom=20mm, left=55mm, right=15mm]{geometry}
+\\usepackage{setspace}
+
+\\pagestyle{empty}
+
+\\begin{document}
+
+PREAMBULO_DOCUMENTO
+
+# imprime 1 página por orientador/co-orientador
+$dbStatement1->execute();
+
+my $checa_existencia = 0;
+while ( @dbLinha1 = $dbStatement1->fetchrow_array )
+{
+	my $orientacao;
+
+	$orientacao = "co-orientador" if $dbLinha1[3] == 0;
+	$orientacao = "orientador"    if $dbLinha1[3] == 1;
+
+	print "$crlf\\newpage$crlf$crlf" if $checa_existencia == 1;
+	$checa_existencia = 1;
+
+	# ajuste de datas
+	my $data = $dbLinha1[4];
+
+	my $data_extenso = get_data_extenso($data);
+	my $data_normal  = get_data_normal($data);
+
+print <<PREAMBULO_PAGINA;
+% ------------------------------- nova seção
+\\begin{center}
+\\bfseries
+Departamento Acadêmico de Eletrotécnica \\\\
+Trabalho de Conclusão de Curso
+\\end{center}
+
+\\vspace{15mm}
+
+\\begin{center}
+\\bfseries
+\\scshape
+\\Large
+Declaração
+\\end{center}
+
+\\vspace{15mm}
+
+\\begin{doublespace}
+Declaramos que
+
+\\begin{center}
+\\Large
+\\itshape
+$dbLinha1[2]
+\\end{center}
+
+PREAMBULO_PAGINA
+
+	print "atuou como $orientacao do Trabalho de Conclusão de Curso " .
+	      "intitulado ``$dbLinha1[1]'' realizado ";
+
+	$dbStatement2->bind_param(1, $dbLinha1[0]);
+	$dbStatement2->bind_param(2, $dbLinha1[4]);
+	$dbStatement2->bind_param(3, $dbLinha1[4]);
+	$dbStatement2->execute();
+
+	my @lista_alunos;
+	while ( @dbLinha2 = $dbStatement2->fetchrow_array )
+	{
+		push @lista_alunos, $dbLinha2[0];
+	}
+
+	my $lista_alunosSize = scalar(@lista_alunos);
+	if ($lista_alunosSize==1 )
+	{
+		print "pelo aluno $lista_alunos[0]";
+	}
+	else
+	{
+		print "pelos alunos $lista_alunos[0]";
+		for (my $i=1; $i<$lista_alunosSize - 1; $i++)
+		{
+			print ", $lista_alunos[$i]";
+		}
+		print " e $lista_alunos[$lista_alunosSize - 1]";
+	}
+
+	print ", no período de " . get_data_normal($dbLinha1[5]);
+	if (defined $dbLinha1[6])
+	{
+		print " a " . get_data_normal($dbLinha1[6]);
+	}
+	else
+	{
+		print " a " . get_data_normal($semestre_fim);
+	}
+
+	print ", e defendido em $data_normal.$crlf";
+ 
+	$dbStatement3->bind_param(1, $dbLinha1[0]);
+	$dbStatement3->bind_param(2, $dbLinha1[4]);
+	$dbStatement3->bind_param(3, $dbLinha1[4]);
+	$dbStatement3->execute();
+
+	@dbLinha2 = $dbStatement3->fetchrow_array;
+	while ( $dbStatement3->fetchrow_array )
+	{
+	}
+
+print <<PERORACAO_PAGINA;
+
+\\begin{flushright}
+Curitiba, $data_extenso.
+\\end{flushright}
+\\end{doublespace}
+
+\\vspace{15mm}
+
+\\begin{center}
+\\rule{9cm}{0.5pt}\\\\
+$dbLinha2[2]\\\\
+\\footnotesize
+Coordenador do Curso de $dbLinha2[0]
+\\end{center}
+
+\\vspace{15mm}
+
+\\begin{center}
+\\rule{9cm}{0.5pt}\\\\
+$dbLinha2[1]\\\\
+\\footnotesize
+Responsável pelos Trabalhos de Conclusão de Curso\\\\
+$dbLinha2[0]
+\\end{center}
+PERORACAO_PAGINA
+}
+
+
+# impressão da peroracao (conforme página)
+print <<PERORACAO_DOCUMENTO;
+
+\\end{document}
+PERORACAO_DOCUMENTO
+
+# desconexão com banco de dados
+$dbHandle->disconnect();
+exit 0;
+
+
+# -----------------------------------------------------------------------------
+# funções de manipulação de data
+# -----------------------------------------------------------------------------
+sub get_data_extenso()
+{
+	my $data = $_[0];
+	my @informacao = split('-', $data);
+	my $mes;
+
+	$mes = "janeiro"   if $informacao[1] == 1;
+	$mes = "fevereiro" if $informacao[1] == 2;
+	$mes = "março"     if $informacao[1] == 3;
+	$mes = "abril"     if $informacao[1] == 4;
+	$mes = "maio"      if $informacao[1] == 5;
+	$mes = "junho"     if $informacao[1] == 6;
+	$mes = "julho"     if $informacao[1] == 7;
+	$mes = "agosto"    if $informacao[1] == 8;
+	$mes = "setembro"  if $informacao[1] == 9;
+	$mes = "outubro"   if $informacao[1] == 10;
+	$mes = "novembro"  if $informacao[1] == 11;
+	$mes = "dezembro"  if $informacao[1] == 12;
+
+	return "$informacao[2] de $mes de $informacao[0]";
+}
+
+
+sub get_data_normal()
+{
+	my $data = $_[0];
+	my @informacao = split('-', $data);
+
+	return "$informacao[2]/$informacao[1]/$informacao[0]";
+}
+```
