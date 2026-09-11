@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>TCC/DAELT/UTFPR - Engenharia</title>
+    <base href="https://nupet.daelt.ct.utfpr.edu.br/tcc/">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/meus-estilos.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .header {
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+        }
+        .navbar {
+            background-color: #002147;
+        }
+        .navbar-nav .nav-link {
+            color: white !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background-color:#3b3eff;
+        }
+        .content {
+            margin: 20px;
+        }
+        .container-content {
+            text-align: center;
+            position:relative;
+            margin: 2vw;
+            width:80vw;         
+            min-height: 680px;
+            
+        }
+
+        .card {
+            text-align: left;
+            margin-bottom: 20px;
+
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #002147;
+            color: white;
+        }
+        .footer a {
+            color: #ffcc00;
+        }
+        .footer a:hover {
+            color: #e6b800;
+        }
+        .accordion {
+          background-color: #eee;
+          color: #444;
+          cursor: pointer;
+          padding: 18px;
+          width: 100%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 18px;
+          transition: 0.4s;
+        }
+
+        .accordion:hover {
+          background-color: #ccc;
+        }
+
+        .accordion:after {
+          content: 'B';
+          color: #777;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+        }
+
+        .panel {
+          padding: 0 18px;
+          background-color: white;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <a href="https://utfpr.curitiba.br/daelt/" class="custom-logo-link" rel="home" aria-current="page"><img width="850" height="227" src="./DAELT-CT – Departamento Acadêmico de Eletrotécnica_files/cropped-header_utfpr.png" class="custom-logo" alt="DAELT-CT" decoding="async" fetchpriority="high" srcset="https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr.png 850w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-300x80.png 300w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-768x205.png 768w" sizes="(max-width: 850px) 100vw, 850px"></a>                  
+</div>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+       
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <a class="active" href="https://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/index.html"><i class="fa fa-fw fa-home"></i><b>TCC</b></a>
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="engenharia/metodologia.html"><b>Metodologia Aplicada ao TCC </b></a></li>
+                <li class="nav-item"><a class="nav-link" href="engenharia/tcc1.html"><b>Trabalho de Conclusão de Curso 1 (TCC 1)</b></a></li>
+		<li class="nav-item"><a class="nav-link" href="engenharia/tcc2.html"><b>Trabalho de Conclusão de Curso 2 (TCC 2)</b></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ########## Nova bloco de informações: Lista de alunos ########## --> 
+<div class="title">Lista de alunos ABERTOS</a></div>
+<div>
+<p>Abaixo segue a lista das alunos de TCC abertos atualmente (matriculados) e suas respectivas notas.</p>
+<p>Esta é a nota que será lançada no sistema acadêmico. A falta de documentos implica em reprovação (nota zero)</p>
+
+<p>Disciplina: <b>Metodologia aplicada ao TCC</b> (ET78I) / Turma: <b>S25</b></p>
+<table class="tabelas-aluno">
+	<col width="10%" />
+	<col width="50%" />
+	<col width="20%" />
+	<col width="20%" />
+
+<tr>
+	<th>Código</th>
+	<th>Nome</th>
+	<th>Nota</th>
+	<th>Situação</th>
+</tr>
+
+<tr class="alterna">
+	<td>2426897</td>
+	<td>Ketlyn Kesia dos Santos</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2506858</td>
+	<td>Luana Cristina de Souza</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2004941</td>
+	<td>Pedro Luccas Almeida Naizer dos Santos</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2403170</td>
+	<td>Guilherme Marasca Gauna</td>
+	<td>8.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2331730</td>
+	<td>Enrico Capello Montagnoli</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2237881</td>
+	<td>Mateus de Almeuda Shimazu</td>
+	<td>6</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2242214</td>
+	<td>Pedro Henrique Fritzen</td>
+	<td>10</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2242079</td>
+	<td>Felipe Iubel Batista</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2242230</td>
+	<td>Vanessa Valarinho Kikina</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2307847</td>
+	<td>Vinícius Alves de Brito</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+</table>
+
+<p>Disciplina: <b>Metodologia aplicada ao TCC</b> (ET78L) / Turma: <b>S21</b></p>
+<table class="tabelas-aluno">
+	<col width="10%" />
+	<col width="50%" />
+	<col width="20%" />
+	<col width="20%" />
+
+<tr>
+	<th>Código</th>
+	<th>Nome</th>
+	<th>Nota</th>
+	<th>Situação</th>
+</tr>
+
+<tr class="alterna">
+	<td>1018043</td>
+	<td>Enrique Cetnarowski</td>
+	<td>8.6</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>1048309</td>
+	<td>Renato Inacio Defert Filho</td>
+	<td>7.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>1849735</td>
+	<td>Thales Romelli Rodrigues Keps</td>
+	<td>9.1</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2029243</td>
+	<td>Luiz Fernando Arps De Souza</td>
+	<td>8.3</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2129060</td>
+	<td>George William Lo Kang</td>
+	<td>9.4</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2191440</td>
+	<td>Tales Aquino Henn</td>
+	<td>9.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2191555</td>
+	<td>Lucas Havi Gomes Leite</td>
+	<td>8.8</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2191709</td>
+	<td>Christopher Vela Souza</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2192810</td>
+	<td>Rafael Gomes Figueiredo Ortiz</td>
+	<td>9.4</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2237717</td>
+	<td>Caroline Merlin Camargo Franzoni</td>
+	<td>9.4</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2237776</td>
+	<td>Fernando Daniel da Cunha Faria Vellozo</td>
+	<td>9.4</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2242206</td>
+	<td>Pedro Augusto Prantl dos Santos</td>
+	<td>9.6</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2302608</td>
+	<td>Amanda Laisa Machado</td>
+	<td>9.1</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2302713</td>
+	<td>João Pedro Schiavon</td>
+	<td>7.8</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2307863</td>
+	<td>Carlos Eduardo Lopes Reis de Campos</td>
+	<td>8.6</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2307928</td>
+	<td>Matheus Bonotto da Silva</td>
+	<td>10</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2358930</td>
+	<td>Laura Maria Manfron</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2359065</td>
+	<td>Milena Postai Muler</td>
+	<td>9.6</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2359235</td>
+	<td>Vitor Frogel Moroz</td>
+	<td>9.6</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2369010</td>
+	<td>Maria Eduarda Torrezan Lopes</td>
+	<td>8.3</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2378442</td>
+	<td>Murillo Nogueira</td>
+	<td>9.3</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2403080</td>
+	<td>Yuri Gerhardt Suematsu</td>
+	<td>9.6</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2403099</td>
+	<td>Ana Luiza Venturini Salazar</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2403137</td>
+	<td>Eduardo Nogueira Sousa</td>
+	<td>9.3</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2403200</td>
+	<td>João Pedro Zanin</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2403269</td>
+	<td>Pedro Henrique Dinallo Penasso</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2403285</td>
+	<td>Rafael Perrin</td>
+	<td>9.3</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2414252</td>
+	<td>Diogo Henrique Sosnovski Do Nascimento</td>
+	<td>8.3</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2450844</td>
+	<td>Yasmyn Rodrigues Magalhães Corbelini</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2452561</td>
+	<td>Gabriel Silva Gayer</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2465280</td>
+	<td>Guilherme Salomão Bordim</td>
+	<td>9.1</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2471345</td>
+	<td>Daniel Ruchinski Dezatnih</td>
+	<td>9.1</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2620022</td>
+	<td>Geovane Presa Ferreira</td>
+	<td>9.6</td>
+	<td>aprovado</td>
+</tr>
+</table>
+
+<p>Disciplina: <b>Metodologia aplicada ao TCC</b> (ET78L) / Turma: <b>S23</b></p>
+<table class="tabelas-aluno">
+	<col width="10%" />
+	<col width="50%" />
+	<col width="20%" />
+	<col width="20%" />
+
+<tr>
+	<th>Código</th>
+	<th>Nome</th>
+	<th>Nota</th>
+	<th>Situação</th>
+</tr>
+
+<tr class="alterna">
+	<td>1721488</td>
+	<td>Vitor Bassan Renno Cordeiro</td>
+	<td>7.5</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2087200</td>
+	<td>Lucas Henrique Silva Ribeiro</td>
+	<td>7.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2091038</td>
+	<td>Gabriel Fernandes da Veiga</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2091143</td>
+	<td>Larissa Caroline Durau Padilha</td>
+	<td>7.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2242010</td>
+	<td>Camila Ferreira Alves</td>
+	<td>8</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2267012</td>
+	<td>Vitor Hugo Coutinho Silva</td>
+	<td>8</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2280582</td>
+	<td>Leonardo Assis de Oliveira</td>
+	<td>8</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2307782</td>
+	<td>Raissa Kamille Martins da Silva</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2402963</td>
+	<td>Marcus Vinícius Alves Cerqueira</td>
+	<td>10</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2450569</td>
+	<td>Felipe Borba Jaros</td>
+	<td>8.5</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2450577</td>
+	<td>Felipe Perotoni Rauen</td>
+	<td>9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2450690</td>
+	<td>Isabela Mary Sasaki e Silva</td>
+	<td>10</td>
+	<td>aprovado</td>
+</tr>
+<tr class="alterna">
+	<td>2450810</td>
+	<td>Pedro Henrique Silva</td>
+	<td>8.9</td>
+	<td>aprovado</td>
+</tr>
+<tr>
+	<td>2450828</td>
+	<td>Rafael Murilo Champini</td>
+	<td>8.5</td>
+	<td>aprovado</td>
+</tr>
+</table>
+
+</div>
+
+
+<!-- ############# Nova bloco de informações: Validações HTML ############ --> 
+<div class="footer">
+    <a href="https://validator.w3.org/check?uri=referer">
+        <img src="https://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88">
+    </a>
+    <a href="https://jigsaw.w3.org/css-validator/check/referer">
+        <img src="https://jigsaw.w3.org/css-validator/images/vcss" alt="CSS válido!" height="31" width="88">
+    </a>
+</div>
+
+
+</body>
+</html>

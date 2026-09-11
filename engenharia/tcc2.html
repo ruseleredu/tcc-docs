@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>TCC/DAELT/UTFPR - TCC 2</title>
+    <base href="https://nupet.daelt.ct.utfpr.edu.br/tcc/">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/meus-estilos.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .header {
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+        }
+        .navbar {
+            background-color: #002147;
+        }
+        .navbar-nav .nav-link {
+            color: white !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background-color:#3b3eff;
+        }
+        .content {
+    		margin: 20px;
+		}
+        .container-content {
+        	text-align: center;
+            position:relative;
+     		margin: 2vw;
+     		width:80vw;         
+     		min-height: 680px;
+            
+        }
+
+        .card {
+        	text-align: left;
+            margin-bottom: 20px;
+
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #002147;
+            color: white;
+        }
+        .footer a {
+            color: #ffcc00;
+        }
+        .footer a:hover {
+            color: #e6b800;
+        }
+        .accordion {
+		  background-color: #eee;
+		  color: #444;
+		  cursor: pointer;
+		  padding: 18px;
+		  width: 100%;
+		  border: none;
+		  text-align: left;
+		  outline: none;
+		  font-size: 18px;
+		  transition: 0.4s;
+		}
+
+		.accordion:hover {
+		  background-color: #ccc;
+		}
+
+		.accordion:after {
+		  content: '\002B';
+		  color: #777;
+		  font-weight: bold;
+		  float: right;
+		  margin-left: 5px;
+		}
+
+		.panel {
+		  padding: 0 18px;
+		  background-color: white;
+		  max-height: 0;
+		  overflow: hidden;
+		  transition: max-height 0.2s ease-out;
+		}
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <a href="https://utfpr.curitiba.br/daelt/" class="custom-logo-link" rel="home" aria-current="page"><img width="850" height="227" src="./DAELT-CT – Departamento Acadêmico de Eletrotécnica_files/cropped-header_utfpr.png" class="custom-logo" alt="DAELT-CT" decoding="async" fetchpriority="high" srcset="https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr.png 850w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-300x80.png 300w, https://utfpr-ct-static-content.s3.amazonaws.com/utfpr.curitiba.br/wp-content/uploads/sites/9/2020/08/cropped-header_utfpr-768x205.png 768w" sizes="(max-width: 850px) 100vw, 850px"></a>                  
+    <!--<div class="title">Trabalho de Conclusão de Curso</div>-->
+</div>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+       
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+             <a class="active" href="https://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/index.html"><i class="fa fa-fw fa-home"></i><b>TCC</b></a>
+             <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="engenharia/metodologia.html"><b>Metodologia Aplicada ao TCC </b></a></li>
+                <li class="nav-item"><a class="nav-link" href="engenharia/tcc1.html"><b>Trabalho de Conclusão de Curso 1 (TCC 1)</b></a></li>
+				<li class="nav-item"><a class="nav-link" href="engenharia/tcc2.html"><b>Trabalho de Conclusão de Curso 2 (TCC 2) e TCC - NOVO</b></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ==============================INFO INICIAL================================ -->
+<div class="container-content">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Temas de TCC</h2>
+                    <h3 class="card-subtitle mb-2 text-danger">Sem tema de pesquisa?</h3>
+                    <p class="card-text">Consulte os <a href="https://docs.google.com/spreadsheets/d/1L8AFrL8xKrOqDGXGbj403tc_bVsqgv7VrX44wrvmMNw/edit?usp=sharing"><b>temas propostos pelos professores do DAELT</b></a>.</p>
+                    <h3 class="card-subtitle mb-2 text-danger">Mudança de matriz</h3>
+                    <p class="card-text">Consulte o guia sobre mudança de matriz <a href="https://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/doc/TCC - Apresentação TCC matrizes.pdf"><b>aqui</b></a>.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Orientadores</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><a href="professores.html">Lista dos professores do DAELT</a></li>
+                        <li class="list-group-item"><a href="engenharia/orientadores_equipes.html">Orientadores vs Equipes</a></li>
+                   </ul>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Equipes/Notas</h2>
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item">Lista de equipes: <a href="engenharia/equipes_tcc2.html">TCC 2/TCC NOVO</a></li>                   
+		      <li class="list-group-item">Lista de alunos e notas: <a href="engenharia/alunos_tcc2.html">TCC 2/TCC NOVO</a></li>
+                     </ul>
+                </div>
+            </div>
+        </div>
+<!-- ============================Datas limites para entregas=================== -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                	<h2 class="card-title">Datas-limites para entregas Trabalho de Conclusão de Curso (TCC 2 e TCC - Novo) </h2>
+					<table class="tabelas-info">
+					<tr>
+						<th>Data-Limite</th>
+						<th>Objeto a entregar</th>
+						<th>Comentários</th>
+					</tr>
+
+					<tr>
+						<td>2/09/2026</td>
+						<td><b>Aprovação de resultados parciais</b></td>
+						<td>O <b>aluno</b> deve apresentar os resultados parciais e deve ser aprovado pela banca. O <b>orientador</b> deve criar uma ata SEI com o conceito da banca: “apto”, “apto com mudanças” ou “não apto”. Ver instruções para o orientador <a href="engenharia/tcc2.html#ata-procedimentos">abaixo</a>. Estudantes que tenham feito a migração de matriz e tenham sido aprovados em TCC1, devem solicitar ao orietador o preenchimento do SEI com as informações da banca. </td>
+						<!--, podendo usar o <a href="https://sistemas.ct.utfpr.edu.br/ambientes/">sistema de agendamento da UTFPR</a></td> -->
+					</tr>
+
+					<tr>
+						<td>30/11/2026</td>
+						<td><b>Inscrição na Defesa Final</b></td>
+						<td>O <b>aluno</b> deve encaminhar o <a href="https://forms.gle/bmfmZhDhwG9NayPU6">formulário</a> disponível neste site. <b>Orientador</b> deve agendar a sala de defesa entrando em contato com a secretaria do departamento.</td>
+						<!--, podendo usar o <a href="https://sistemas.ct.utfpr.edu.br/ambientes/">sistema de agendamento da UTFPR</a></td> -->
+					</tr>
+
+					<tr>
+						<td>30/11/2026</td>
+						<td><b>Termo de compromisso de empresa-parceira</b></td>
+						<td>Encaminhado através do email <b><span class="visual-emails">tcc-daelt-ct [at] utfpr [dot] edu [dot] br</span></b> à coordenação do TCC. Veja como preenchê-lo <a href="engenharia/tcc2.html#termo-compromisso-procedimentos">aqui</a>.</td>
+					</tr>
+
+					<tr>
+						<td>2/12/2026</td>
+						<td><b>Defesa Final</b></td>
+						<td>A defesa deve ser realizada antes desta data.</td>
+					</tr>
+
+					<tr>
+						<!-- 7-10 dias antes do fim do semestre e aprox 2 semanas após defesa-->
+						<td>7/12/2026</td>
+						<td><b><ul>
+					  <li>Monografia (com folha de aprovação digital)</li>
+					  <li>Resumo da monografia em arquivo texto</li>
+					  <li>Nome codificado do arquivo para biblioteca</li>
+					 <li>Termos de divulgação de imagem ou autorização para divulgação de informações de empresas</li>
+					 <li>Termo de autorização para pedido de tempo restrição de publicação</li>
+					</ul>
+					<td>Todos os arquivos devem ser encaminhados usando o <a href="https://forms.gle/F9quhwnpeUAYJkdG9">formulário</a> disponível neste site. O envio deve ser feito de preferência pelo aluno.<br> <br> <b>Monografia:</b> deve se encontrar em versão digital <b>(PDF/A)</b>; não deve conter qualquer assinatura ou rubrica; a folha de rosto deve seguir as normas da biblioteca e incluir o selo da licença <i>Creative Commons</i> <b>CC BY NC SA</b> (vide modelo de monografia e explicações no <a href="engenharia/doc/tcc2/checklist.pdf"><i>Check-list</i></a>). <i>Para o nome do arquivo pdf siga a nomenclatura especificada neste site</i>. <br><b>Resumo:</b>deve ser exatamente igual ao resumo que está na monografia em formato <b>.txt</b> sem quebra de linha ou código LaTex. <i>Para o nome do arquivo txt siga a nomenclatura especificada neste site</i>. <br><b>Nome codificado:</b>no formulário mencione o nome codificado, vejam explicações no <a href="engenharia/doc/tcc2/checklist.pdf"><i>Check-list</i></a> <br> <b>Termos de autorização:</b>Confira os modelos da Autorização para divulgação de informações de empresas (<a href="engenharia/doc/tcc2/Apêndice A - Termo - Informações de empresas-organizações-instituições.docx">aqui</a>) e Autorização para divulgação de imagem, voz e dados digitais e respectiva cessãode direitos (<a href="engenharia/doc/tcc2/Apêndice A - TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM.docx">aqui</a>). </td>
+					</tr>
+				<tr>
+					<td>7/12/2026</td>
+					<td><p><b>Termo de aprovação,</b></p><p><b>Ata de aprovação</b></p><p></p></td>
+					<td>Gerados digitalmente pelo <b>ORIENTADOR</b> no SEI com base nas informações que a equipe passará a ele (vejam explicações <a href="engenharia/tcc2.html#ata-procedimentos">abaixo</a>).</td>
+				</tr>
+					<td>Fim de semestre letivo</td>
+					<td><p><b>Lançamento da nota no sistema acadêmico</b></p></td>
+					<td>Depois do envio da monografia e posterior aprovação por parte de dois professores responsáveis de TCC, a nota será lançada no diario de notas do semestre letivo. Pode confirmar seu envio e verificar o andamento da revisão <a href="https://script.google.com/macros/s/AKfycbzBkWwvdlocmQpn8GXGXzxNdayGLKW4MWMAxdK9VvZQd9is9MO15a3CXUVJmF52cuyT3A/exec">aqui</a>.</td>
+				</tr>
+
+					</table>
+               </div>
+            </div>
+        </div>
+<!-- ============================Aulas e Materiais Diversos==================== -->
+        <div class="col-md-12">
+            <div class="card">
+            	  <div class="card-body">
+                <h2 class="card-title">Informações complementares</h2>
+                <!-- ============================ Agenda defesas ==================== -->
+                <button class="accordion">Agenda das defesas inscritas</button>
+								<div class="panel">
+								<ul class="listas-espacadas">
+									<li>Grade de horários <a href="engenharia/tcc2_agenda_simplificada.html">simplificada</a>.</li>
+									<li>Grade de horários <a href="engenharia/tcc2_agenda_detalhada.html">detalhada</a>.</li>
+								</ul>
+								</div>	
+
+								<!-- ============================Fluxo de Trabalho==================== -->
+                <button class="accordion">Fluxo de Trabalho de Conclusão de Curso 2 (TCC 2)</button>
+								<div class="panel">
+								<p>Observe <a href="engenharia/doc/tcc2/FlowTCC2_2.png">aqui</a> o fluxo de trabalho desde sua matricula na disciplina de TCC 2 até o lançamento da nota no sistema acadêmica, atente-se às datas limites do calendário.</p>
+								<center><a href="engenharia/doc/tcc2/FlowTCC2_2.png"><img src="engenharia/doc/tcc2/FlowTCC2_2.png" alt="Fluxo de Trabalho de Conclusão de Curso 2 (TCC 2)"width="600" height="800"title="Clique para ampliar"></a></center>
+								</div>	
+								<!-- ============================Nomenclatura==================== -->
+                <button class="accordion"> <a id="ata-nomenclatura">Nomenclatura de arquivos finais de TCC 2</a></button>
+								<div class="panel">
+								<p>Os arquivos devem ser nomeados da seguinte forma, quando enviados ao responsável pelo TCC:</p>
+								<ul class="listas-espacadas">
+									<li>Monografia final para biblioteca (pós-defesa aprovada): <b><code>[codigo da equipe]_final.pdf</code></b>
+										<p>Exemplo: <b><code>2011_1_10_final.pdf</code></b></p></li>
+									<li>Arquivo texto com o resumo da monografia final: <b><code>[codigo da equipe]_resumo.txt</code></b>
+										<p>Exemplo: <b><code>2011_1_10_resumo.txt</code></b></p></li>
+								</ul>
+									<p>Os códigos das equipes se encontram nesta <a href="engenharia/equipes_tcc2.html">lista</a></p>
+								</div>
+								<!-- ============================Material complementar==================== -->
+            		<button class="accordion">Material complementar</button>
+								<div class="panel">
+									<ul class="listas-espacadas">
+										<!--<li><a href="engenharia/doc/tcc2/aula_1.pdf">Aula 1</a>: Planejamento para Defesa Final do TCC (em PDF).</li> -->
+										<li>Norma para escrita do trabalho: <a href="https://www.gedweb.com.br/utfpr/">ABNT NBR-14724:2011 "Informação e documentação - Trabalhos acadêmicos - Apresentação"</a> (você deve se cadastrar no site para obter a norma).</li>
+										<li><a href="engenharia/doc/tcc2/slide_mestre.ppt">Slide Mestre</a> que serve de padrão para a Defesa Final do TCC (em PPT).</li>
+										<li><a href="engenharia/doc/tcc2/Apostila_TCC_LaTeX_Victor.pdf">Dicas úteis para Escrita de TCCs de Engenharia em LaTex</a> Documento do Prof. Victor Frencl com dicas para a elaboração da monografia em LaTex.</li>
+			              </div>
+			           <!-- ============================Modelos==================== -->
+			            	<button class="accordion">Modelos</button>
+			            	<div class="panel">
+									<ul class="listas-espacadas">
+										<li><a href="https://www.utfpr.edu.br/biblioteca/trabalhos-academicos/discentes">Modelos de monografia</a>:
+					    				Modelos de monografia que seguem as normas da biblioteca e da ABNT. Serão usados como referência para checagem da aderência das monografias finais entregues após a defesa de TCC2 (<a href="engenharia/doc/tcc2/Modelo_TCC_v2_6.pdf">versão PDF</a>). <i><b>Preferencialmente utilize a <a href="https://www.overleaf.com/read/mcnfwmjjknrr#1bf89f">versão LaTex online</a> (<a href="engenharia/doc/tcc2/Overleaf.pdf">notas para compilar em overleaf</a>) ou <a href="https://nuvem.utfpr.edu.br/index.php/s/AGXPpLpGc8WZ6e7">versão LaTex offline</a>.</b></i></li>
+									</ul>
+			         	</div>
+                	<!-- =================================Documentação============================= -->
+                	<button class="accordion">Documentação</button>
+                    <div class="panel">
+					
+									<ul class="listas-espacadas">
+										<li><a href="https://forms.gle/bmfmZhDhwG9NayPU6">Pedido de Inscrição na Defesa Final</a>
+										    <p>Envie o formulário do link acima, informando sobre a conclusão do trabalho e solicitando inscrição no Seminário de Avaliação de TCC. </p></li>
+										<li><a href="engenharia/doc/tcc2/monografia_folha_aprovacao_digital.docx">Folha de Aprovação <b>Digital</b></a> (<a href="engenharia/doc/tcc2/monografia_folha_aprovacao_digital.pdf">versão PDF</a>)
+	    									<p>Não deve ser assinada. Deve ser incluída na monografia (também digital), que será posteriormente encaminhada para biblioteca (vide modelo de monografia).</p></li>
+										<li><b>Autorização para divulgação de informações de empresas</b>
+	    									<p>Autorização do <b>representante legal da empresa</b> na/para qual o trabalho (que contém informações dessa empresa) foi desenvolvido uma vez que a monografia será disponibilizada no sistema de bibliotecas da UTFPR. Note que a autorização prevê restrições de publicação, de acordo com a vontade dos autores, desde que devidamente justificado. Pode usar uma via por aluno da equipe e preenchê-lo a mão.</p>
+	    									<p>A equipe deve gerar o <a href="engenharia/doc/tcc2/Apêndice A - Termo - Informações de empresas-organizações-instituições.docx">documento físico</a> para que o representante legal assine-o, sendo que o mesmo deve ser digitalizado e entregue junto com o envio da versão final da monografia através do fomulário acima.</p></li>
+										<li><b>Autorização para divulgação de imagem, voz e dados digitais e respectiva cessão de direitos</b>
+	   								 		<p>Caso a versão final do trabalho e do produto educacional e tecnológico, que a acompanha, inclua imagens de pessoas, voz de pessoas ou dados digitais, todos os envolvidos devem preencher e assinar o Termo de Autorização de Uso de Imagem, Voz e Dados Digitais e Respectiva Cessão de Direitos, disponível no <a href="engenharia/doc/tcc2/Apêndice A - TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM.docx">Apêndice A</a>. O documento original ficará sob a responsabilidade do autor do trabalho a quem compete a apresentação de provas em caso judicial e terá cópia digitalizada anexada pelo orientador no Sistema Acadêmico no momento do trâmite do trabalho.</p>
+	 									 	<p>O documento deve ser digitalizado e entregue junto com o envio da versão final da monografia da monografia através do fomulário acima.</p></li>
+	 									 
+	 									 <li><b>Termo de autorização para publicação de trabalhos de conclusão de curso</b>
+	 									 	<p> Autorização dos autores para divulgação do TCC e pedido de restrição de publicação através do Portal de Informação (PIA) e dos Catálogos das Bibliotecas da UTFPR. Utilize no caso de pedido de tempo de restrição de publicação total ou parcial. O documento disponível <a href="engenharia/doc/tcc2/termo-de-autorizacao-para-publicacao.doc">aqui</a>, deve ser Assinada por todos os autores e orientador e enviada no formulário de envio da monografia</p>
+
+
+										<li><a href="https://forms.gle/F9quhwnpeUAYJkdG9">Envio de Monografia (versão final), resumo e nome codificado</a>
+	    									<p>Envie o formulário do link acima, anexando as informações e documentos solicitados. </p></li>
+										<li><a href="engenharia/doc/tcc2/checklist.pdf"><i>Check-list</i> de formatação da Monografia final</a>
+											<p>Deve ser preenchido para reforçar os itens de formatação que geralmente causam problemas no envio do trabalho para a biblioteca. Use-o para verificar se seu trabalho atende às normas da biblioteca e o envie devidamente preenchido para confirmação</p>
+										<li><a href="engenharia/doc/metodologia/carta_anuencia_proposta.doc">Carta de Anuência para mudança de orientador</a>
+						    				<p>Carta encaminhando a Proposta de TCC. Deve ser assinada pelo <b>Orientador</b> e pela <b>Equipe</b> (em DOC).</p></li>
+										<li><a href="engenharia/doc/comum/termo_de_compromisso_institucional.rtf">Termo de Compromisso de Empresa-Parceira</a>
+						    			<p>Apenas para TCCs realizados dentro de empresas. Deve ser assinado <b>DIGITALMENTE no SEI</b> pelo <b>Responsável da Empresa</b> e pelos <b>Alunos, individualmente</b> (em RTF). Procedimento:</p></li>
+										<ol class="listas-espacadas">
+											<li>Buscar na DIREC (Diretoria de Relações Empresariais e Comunitárias) uma cópia do termo de compromisso de empresa-parceira.
+										    <p>Esta cópia é a mesma disponível neste site, mas já previamente preenchida com as informações do campus Curitiba.</p></li>
+											<li>Levar o documento na empresa para avaliação jurídica, e obter assinatura com o responsável da empresa.
+											<p>Se a empresa acha que algum termo deve ser modificado, você deve trazer as modificações do termo de compromisso de empresa-parceira para avaliação jurídica da UTFPR (junto a DIREC e DIRGRAD) e recomeçar o processo.</p>
+											<p>Todas as partes envolvidas (empresa e UTFPR) <b>têm que concordar</b> legalmente com o documento.</p></li>
+											<li>Trazer o documento na coordenação do TCC para assinatura</li>
+											<li>Levar o documento na DIRGRAD para assinatura.</li>
+										</ol>
+										</ul>
+          			</div>
+				          <!-- =================================Licenciamento============================= -->
+                	<button class="accordion">Licenciamento <i>Creative Commons</i> das monografias</button>
+                    <div class="panel">
+										<p>A UTFPR definiu que TODAS as monografias que serão encaminhadas para publicação online no repositório eletrônico de usa biblioteca DEVEM ser licenciadas através do termo de licenciamento <i>Creative Commons</i>. Há um total de 6 licenças (CC-BY, CC-BY-NC, CC-BY-NC-ND, CC-BY-NC-SA, CC-BY-ND e CC-BY-SA) que a equipe e/ou seu orientador deverão definir de acordo com suas necessidades e vontades. Observem que esta escolha implicará na definição de direitos que serão aplicados ao trabalho publicado</p>
+
+										<p><a href="http://portal.utfpr.edu.br/biblioteca/trabalhos-academicos">Este sítio da biblioteca</a> traz mais informações sobre o licenciamento, bem como define a folha de rosto que conterá o selo e o texto explicativo do licenciamento escolhido: Atentem-se particularmente à necessidade do hyperlink do selo estar ATIVO, para que o leitor seja levado ao contrato do termo de licenciamento escolhido.</p>
+										</div>
+
+						<!-- =================================Orientador============================= -->
+                	<button class="accordion">Instruções para o orientador</button>
+                    <div class="panel">
+
+									<p><a id="ata-procedimentos"> Uso do SEI para geração de ata de aprovação em TCC2 e TCC (nova grade) assinados digitalmente</a>. O seguinte processo foi aberto no SEI para adição da ata de aprovação parcial (TCC-novo) e os documentos relativos à defesa final de TCC2 e TCC-novo (ele esta agrupado para acompanhamento especial no grupo <b>TCC ENGENHARIAS DAELT 2026-01)</b>: <b style="color:Tomato;">23064.034303/2026-24</b> – Processo <b>Graduação: Defesa de Trabalho de Conclusão de Curso</b></p>
+									<p>Este <a href="engenharia/doc/tcc2/procedimentos-tcc2-sei.pdf">arquivo</a> detalha o passo-a-passo para geração, assinatura e inclusão dos documentos nesses processos. Sem esses documentos corretamente assinados, a nota dos alunos - mesmo aprovados por banca - não pode ser lançada no sistema acadêmico. Foi utilizado como exemplo o processo do semestre 2023-01, <b> realize estes passos no processo deste semestre mencionado acima.</b> </p>
+									Cada documento SEI tem um "Documento modelo" que pode ser usado para a criação de cada documento: ata de defesa de resultados parciais (5873350), ata de defesa final (5873353), termo de aprovação (5873360).
+
+
+									<ul class="listas-espacadas">
+								<li><b>Ata de apresentação de resultados parciais de TCC</b>
+	    						<p> Ata de apresentação de resultados parciais de TCC é valida <b> somente para estudantes que se encontram na nova matriz</b>, e deve ser assinada <b>DIGITALMENTE no SEI</b> pelos <b>membros da banca</b>. Este documento deve ser gerado pelo <b>ORIENTADOR</b> de TCC e encaminhado para os membros da banca para assinatura. Verifique que todos os membros da banca assinem antes da data limite.</li>
+									<li><b>Termo de Aprovação</b>
+	    						<p>Termo de Aprovação é valido para TCC2 e TCC da nova matriz e deve ser assinado <b>DIGITALMENTE no SEI</b> pelos <b>membros da banca</b>. Este documento deve ser gerado pelo <b>ORIENTADOR</b> de TCC e encaminhado para os membros da banca para assinatura. Verifique que todos os membros da banca assinem antes da data limite.</li>
+									<li><b>Ata de aprovação</b>
+	   							<p>A ata de aprovação é valida para TCC2 e TCC da nova matriz e deve ser assinada <b>DIGITALMENTE no SEI</b> pelos <b>membros da banca</b> que contém a NOTA da equipe. Este documento deve ser gerado pelo <b>ORIENTADOR</b> de TCC e encaminhado para os membros da banca para assinatura. Verifique que todos os membros da banca assinem antes da data limite.</li>
+							</ul>
+								
+								<b>Inscrição membro externo no SEI </b>
+	   							<p>Este procedimento é necessário para um membro externo assinar os documentos de banca (termo e ata de aprovação). Deve ser aberto um <b>processo SEI</b> do tipo: geral: cadastro de usuario externo no sei. Depois deve adicionar e preenche o documento: Termo Concordância e Veracidade. Finalmente, precisa adicionar um documento de identificação do membro externo. Encaminhe para F_DIRGRAD-CT, e na sequencia avise o secretário do departamento que é um dos gerenciadores do SEI.
+							
+							
+           </div>
+	<!-- =================================Regulamentação TCC====================================== -->
+                           <button class="accordion">Regulamentação do Trabalho de Conclusão de Curso</button>
+								<div class="panel">
+								<ul class="listas-espacadas">
+									<li><a href="engenharia/doc/IN_TCC_EngEletrica.pdf">NORMAS COMPLEMENTARES DE TCC DOS CURSOS DE ENGENHARIA ELÉTRICA</a>.</li>			
+									<li><a href="engenharia/doc/IN_TCC_EngControleAutomação.pdf">NORMAS COMPLEMENTARES DE TCC DOS CURSOS DE ENGENHARIA DE CONTROLE E AUTOMAÇÃO</a>.</li>
+									<li><a href="https://sei.utfpr.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=3171226&id_orgao_publicacao=0">Regulamento de Trabalho de Conclusão de Curso para os Cursos de Graduação da UTFPR</a>.</li>
+								</ul>
+								</div>	
+
+	<!-- =================================FAQ====================================== -->
+                	<button class="accordion">FAQ</button>
+                    <div class="panel">
+					<ol class="listas-espacadas">
+						<li>Qual o tamanho máximo das equipes para desenvolver o TCC?
+						    <p>Segundo o <a href="http://www.utfpr.edu.br/estrutura-universitaria/pro-reitorias/prograd/legislacao/utfpr-1/regulamento_tcc_utfpr.pdf">regulamento de TCC da UTFPR</a>, o trabalho pode ser individual ou realizado em equipe (artigo 2, Capítulo I do regulamento). Atualmente o departamento permite equipes de 1, 2 e até 3 alunos.</p></li>
+						<li>Meu orientador pode ser de outro departamento?
+						    <p>Segundo o <a href="http://www.utfpr.edu.br/estrutura-universitaria/pro-reitorias/prograd/legislacao/utfpr-1/regulamento_tcc_utfpr.pdf">regulamento de TCC da UTFPR</a>, o orientador deve ser professor docente da UTFPR (artigo 6, parágrafo 1, Capítulo II do regulamento). Entretanto o trabalho e o orientador devem ser previamente <b>avaliados e autorizados</b> pela Coordenação de Cursos do DAELT.</p></li>
+						<li>Como devo informar a troca de orientador?
+						    <p>Encaminhe a Carta de Anuência assinada pelo novo orientador no e-mail: <span class="visual-emails">tcc-daelt-ct [at] utfpr [dot] edu [dot] br</span>.</p></li>
+						<li>Qual a abreviatura correta para professor com titulação de especialista?
+							<p>Prof. Esp. para homens e Profa. Esp. para mulheres.</p></li>
+						<li>Qual a abreviatura correta para professor com titulação de mestre?
+							<p>Prof. MSc. para homens e Profa. MSc. para mulheres.</p></li>
+						<li>Qual a abreviatura correta para professor com titulação de doutor?
+							<p>Prof. Dr. para homens e Profa. Dra. para mulheres.</p></li>
+						<li>Posso desenvolver o trabalho com colegas de outras turmas de Metodologia?
+							<p>Sim. Todos devem estar matriculados regularmente em uma das turmas de Metodologia de um dado semestre.</p></li>
+						<li>O nome do meu trabalho mudou. O que devo fazer?
+							<p>Informe o novo nome nos formulários de inscrição de defesa parcial ou defesal final.</p></li>
+					</ol>
+                	</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ############# Nova bloco de informações: Validações HTML ############ --> 
+<div class="footer">
+    <a href="https://validator.w3.org/check?uri=referer">
+        <img src="https://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Transitional" height="31" width="88">
+    </a>
+    <a href="https://jigsaw.w3.org/css-validator/check/referer">
+        <img src="https://jigsaw.w3.org/css-validator/images/vcss" alt="CSS válido!" height="31" width="88">
+    </a>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+
+</body>
+</html>
