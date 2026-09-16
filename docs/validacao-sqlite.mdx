@@ -1,0 +1,373 @@
+---
+title: Validação de Dados SQLite
+description: Aprenda a validar dados do SQLite com better-sqlite3 antes de gerar PDFs. Exemplos práticos de validação de schema, tipos, valores obrigatórios e regras de negócio.
+sidebar_label: Validação SQLite
+---
+
+# Validação de Dados SQLite
+
+Antes de gerar PDFs (ou qualquer artefato), é fundamental **validar os dados** lidos do banco. Dados inconsistentes geram documentos errados, falhas silenciosas ou PDFs quebrados.
+
+Neste guia você aprenderá a validar dados com `better-sqlite3` de forma robusta, integrando a validação ao fluxo de Multi-stage Build.
+
+:::info
+Este conteúdo complementa o tutorial de Multi-stage Builds com React-PDF + better-sqlite3.
+:::
+
+---
+
+## Por que validar?
+
+| Problema sem validação              | Consequência                          |
+|-------------------------------------|---------------------------------------|
+| Cliente vazio ou nulo               | PDF com campo em branco               |
+| Valor negativo                      | Fatura com valor inválido             |
+| Tipo errado (texto no lugar de número) | Erro na formatação ou crash        |
+| Registro incompleto                 | Documento inconsistente               |
+| Tabela vazia                        | Nenhum PDF gerado (falha silenciosa)  |
+
+:::tip
+Valide **sempre** antes de chamar o `@react-pdf/renderer`. É mais barato falhar cedo do que gerar documentos errados.
+:::
+
+---
+
+## 1. Estrutura recomendada
+
+```
+src/
+├── db.js                 # Conexão e queries
+├── validate.js           # Regras de validação
+├── generate.js           # Orquestra leitura → validação → PDF
+└── InvoiceDocument.jsx
+```
+
+---
+
+## 2. Conexão e leitura (`src/db.js`)
+
+```js
+import Database from 'better-sqlite3';
+
+export function getInvoices(dbPath = '/app/data/app.db') {
+  const db = new Database(dbPath, { readonly: true });
+
+  try {
+    const invoices = db.prepare(`
+      SELECT id, customer, amount, description, created_at
+      FROM invoices
+      ORDER BY id
+    `).all();
+
+    return invoices;
+  } finally {
+    db.close();
+  }
+}
+```
+
+---
+
+## 3. Funções de validação (`src/validate.js`)
+
+```js
+/**
+ * Valida uma única fatura
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateInvoice(invoice) {
+  const errors = [];
+
+  // 1. Campos obrigatórios
+  if (invoice.id == null) {
+    errors.push('ID é obrigatório');
+  }
+
+  if (!invoice.customer || String(invoice.customer).trim() === '') {
+    errors.push('Cliente é obrigatório');
+  }
+
+  if (invoice.amount == null) {
+    errors.push('Valor (amount) é obrigatório');
+  }
+
+  // 2. Tipos
+  if (invoice.id != null && !Number.isInteger(Number(invoice.id))) {
+    errors.push('ID deve ser um número inteiro');
+  }
+
+  if (invoice.amount != null && typeof invoice.amount !== 'number') {
+    errors.push('Valor (amount) deve ser numérico');
+  }
+
+  // 3. Regras de negócio
+  if (typeof invoice.amount === 'number') {
+    if (invoice.amount < 0) {
+      errors.push('Valor não pode ser negativo');
+    }
+    if (invoice.amount > 1_000_000) {
+      errors.push('Valor acima do limite permitido (R$ 1.000.000)');
+    }
+  }
+
+  if (invoice.customer && String(invoice.customer).length > 200) {
+    errors.push('Nome do cliente muito longo (máx. 200 caracteres)');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Valida uma lista de faturas
+ * @returns {{ valid: boolean, results: Array<{ invoice, valid, errors }> }}
+ */
+export function validateInvoices(invoices) {
+  if (!Array.isArray(invoices)) {
+    return {
+      valid: false,
+      results: [],
+      globalError: 'O resultado da consulta não é uma lista',
+    };
+  }
+
+  if (invoices.length === 0) {
+    return {
+      valid: false,
+      results: [],
+      globalError: 'Nenhuma fatura encontrada no banco',
+    };
+  }
+
+  const results = invoices.map((invoice) => {
+    const { valid, errors } = validateInvoice(invoice);
+    return { invoice, valid, errors };
+  });
+
+  const allValid = results.every((r) => r.valid);
+
+  return {
+    valid: allValid,
+    results,
+  };
+}
+```
+
+---
+
+## 4. Integrando no script de geração (`src/generate.js`)
+
+```js
+import React from 'react';
+import ReactPDF from '@react-pdf/renderer';
+import fs from 'fs';
+import path from 'path';
+import { getInvoices } from './db.js';
+import { validateInvoices } from './validate.js';
+import InvoiceDocument from './InvoiceDocument.jsx';
+
+const OUTPUT_DIR = '/output';
+
+async function main() {
+  console.log('1. Lendo dados do SQLite...');
+  const invoices = getInvoices();
+
+  console.log('2. Validando dados...');
+  const validation = validateInvoices(invoices);
+
+  if (validation.globalError) {
+    console.error('Erro global:', validation.globalError);
+    process.exit(1);
+  }
+
+  // Mostra erros de cada registro inválido
+  const invalid = validation.results.filter((r) => !r.valid);
+
+  if (invalid.length > 0) {
+    console.error(`\n${invalid.length} fatura(s) inválida(s):\n`);
+
+    for (const item of invalid) {
+      console.error(`  Fatura ID ${item.invoice?.id ?? '???'}:`);
+      item.errors.forEach((err) => console.error(`    - ${err}`));
+    }
+
+    console.error('\nAbortando geração de PDFs.');
+    process.exit(1);
+  }
+
+  console.log(`3. ${invoices.length} fatura(s) válida(s). Gerando PDFs...`);
+
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+
+  for (const invoice of invoices) {
+    const fileName = `fatura-${invoice.id}.pdf`;
+    const filePath = path.join(OUTPUT_DIR, fileName);
+
+    await ReactPDF.renderToFile(
+      <InvoiceDocument invoice={invoice} />,
+      filePath
+    );
+
+    console.log(`  ✓ ${fileName}`);
+  }
+
+  console.log('\nTodos os PDFs foram gerados com sucesso!');
+}
+
+main().catch((err) => {
+  console.error('Erro inesperado:', err);
+  process.exit(1);
+});
+```
+
+:::tip
+Usar `process.exit(1)` faz o estágio de build do Docker **falhar** automaticamente se houver dados inválidos. Isso é excelente para CI/CD.
+:::
+
+---
+
+## 5. Validação de Schema (opcional, mas recomendado)
+
+Além de validar cada registro, você pode verificar se a tabela existe e tem as colunas esperadas:
+
+```js
+export function validateSchema(dbPath = '/app/data/app.db') {
+  const db = new Database(dbPath, { readonly: true });
+
+  try {
+    // Verifica se a tabela existe
+    const table = db.prepare(`
+      SELECT name FROM sqlite_master
+      WHERE type='table' AND name='invoices'
+    `).get();
+
+    if (!table) {
+      return { valid: false, error: 'Tabela "invoices" não encontrada' };
+    }
+
+    // Verifica colunas
+    const columns = db.prepare(`PRAGMA table_info(invoices)`).all();
+    const columnNames = columns.map((c) => c.name);
+
+    const required = ['id', 'customer', 'amount', 'description'];
+    const missing = required.filter((col) => !columnNames.includes(col));
+
+    if (missing.length > 0) {
+      return {
+        valid: false,
+        error: `Colunas faltando: ${missing.join(', ')}`,
+      };
+    }
+
+    return { valid: true };
+  } finally {
+    db.close();
+  }
+}
+```
+
+Uso no `generate.js`:
+
+```js
+import { validateSchema } from './validate.js';
+
+const schemaCheck = validateSchema();
+if (!schemaCheck.valid) {
+  console.error('Schema inválido:', schemaCheck.error);
+  process.exit(1);
+}
+```
+
+---
+
+## 6. Exemplo de saída no build
+
+### Dados válidos
+
+```
+1. Lendo dados do SQLite...
+2. Validando dados...
+3. 3 fatura(s) válida(s). Gerando PDFs...
+  ✓ fatura-1.pdf
+  ✓ fatura-2.pdf
+  ✓ fatura-3.pdf
+
+Todos os PDFs foram gerados com sucesso!
+```
+
+### Dados inválidos (build falha)
+
+```
+1. Lendo dados do SQLite...
+2. Validando dados...
+
+2 fatura(s) inválida(s):
+
+  Fatura ID 2:
+    - Valor não pode ser negativo
+  Fatura ID 5:
+    - Cliente é obrigatório
+    - Valor (amount) deve ser numérico
+
+Abortando geração de PDFs.
+```
+
+O Docker build será interrompido com erro, evitando que uma imagem com dados ruins seja publicada.
+
+---
+
+## 7. Integração no Dockerfile
+
+Nenhuma alteração especial é necessária. Como a validação está dentro do `generate.js`, o estágio de geração já falha automaticamente:
+
+```dockerfile
+# Estágio de geração
+FROM node:20-alpine AS generator
+
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+COPY src ./src
+COPY data ./data
+
+# Se a validação falhar, este RUN falha e o build para
+RUN node src/generate.js
+```
+
+:::warning
+Se você quiser **continuar o build mesmo com alguns registros inválidos** (gerando apenas os válidos), remova o `process.exit(1)` e filtre apenas os registros `valid: true`.
+:::
+
+---
+
+## 8. Boas práticas de validação
+
+| Prática                              | Recomendação                                           |
+|--------------------------------------|--------------------------------------------------------|
+| Falhe cedo                           | Valide antes de gerar qualquer PDF                     |
+| Mensagens claras                     | Informe o ID do registro e o motivo do erro            |
+| Separe responsabilidades             | `db.js` (leitura) + `validate.js` (regras)             |
+| Schema + dados                       | Valide estrutura da tabela e conteúdo dos registros    |
+| CI/CD                                | Deixe o build falhar quando houver dados inválidos     |
+| Não confie no banco                  | Mesmo com constraints no SQLite, valide no código      |
+
+:::danger
+Nunca confie apenas nas constraints do banco. Sempre valide também na aplicação. Constraints podem ser desabilitadas ou o banco pode vir de outra origem.
+:::
+
+---
+
+## Resumo do fluxo completo
+
+```
+1. Validar schema da tabela
+2. Ler registros com better-sqlite3
+3. Validar cada registro (tipos + regras de negócio)
+4. Se houver erro → abortar (process.exit(1))
+5. Se tudo ok → gerar PDFs com @react-pdf/renderer
+6. Copiar apenas os PDFs para a imagem final (Nginx)
+```
+
+Com essa validação, seus Multi-stage Builds ficam muito mais confiáveis e seguros.
