@@ -1,0 +1,280 @@
+---
+title: Enviando Imagens para o Docker Hub
+description: Aprenda a criar uma conta no Docker Hub, fazer login, marcar (tag) e enviar (push) suas imagens Docker de forma completa e segura.
+sidebar_label: Enviar para o Docker Hub
+---
+
+# Enviando Imagens para o Docker Hub
+
+Neste guia você aprenderá a publicar suas imagens Docker no **Docker Hub**, o registro público oficial do Docker.
+
+Você verá:
+
+- Como criar uma conta no Docker Hub
+- Como fazer login pelo terminal
+- Como marcar (tag) corretamente a imagem
+- Como enviar (push) a imagem
+- Boas práticas de versionamento e segurança
+
+:::info
+Este tutorial complementa o guia principal de Docker no Windows com Nginx + VS Code.
+:::
+
+---
+
+## 1. Criar uma conta no Docker Hub
+
+1. Acesse: [https://hub.docker.com](https://hub.docker.com)
+2. Clique em **Sign Up**
+3. Crie sua conta (pode usar conta Google/GitHub ou e-mail)
+4. Confirme o e-mail
+
+Anote o seu **username** (ex: `seunome`). Ele será usado em todos os comandos.
+
+:::tip
+Prefira um username curto e profissional. Ele fará parte do nome das suas imagens (`seunome/meu-nginx`).
+:::
+
+---
+
+## 2. Fazer login no Docker Hub pelo terminal
+
+Abra o **CMD** (ou o terminal do VS Code com o perfil `docker`) e execute:
+
+```batch
+docker login
+```
+
+Você verá:
+
+```
+Login with your Docker ID to push and pull images from Docker Hub...
+Username: seunome
+Password:
+```
+
+- Digite seu **username**
+- Cole o **Access Token** (recomendado) ou a senha
+
+### Criar um Access Token (recomendado)
+
+1. Acesse [https://hub.docker.com/settings/security](https://hub.docker.com/settings/security)
+2. Clique em **New Access Token**
+3. Dê um nome (ex: `windows-dev`)
+4. Escolha a permissão **Read, Write, Delete**
+5. Copie o token gerado e use-o no lugar da senha
+
+:::warning
+Nunca compartilhe seu Access Token. Trate-o como uma senha.
+:::
+
+Para verificar se está logado:
+
+```batch
+docker info
+```
+
+Procure a seção `Username`.
+
+---
+
+## 3. Preparar a imagem (Tag)
+
+Antes de enviar, a imagem precisa seguir o padrão do Docker Hub:
+
+```text
+username/nome-da-imagem:tag
+```
+
+### Exemplo prático
+
+Suponha que você já tenha construído a imagem localmente:
+
+```batch
+docker build -t meu-nginx:1.0 .
+```
+
+Agora crie a tag correta:
+
+```batch
+docker tag meu-nginx:1.0 seunome/meu-nginx:1.0
+docker tag meu-nginx:1.0 seunome/meu-nginx:latest
+```
+
+:::tip
+É uma boa prática criar tanto a tag de versão (`1.0`) quanto a `latest`.
+:::
+
+Verifique as tags:
+
+```batch
+docker images
+```
+
+Você deve ver algo como:
+
+```
+REPOSITORY              TAG       IMAGE ID
+seunome/meu-nginx       1.0       abc123...
+seunome/meu-nginx       latest    abc123...
+meu-nginx               1.0       abc123...
+```
+
+---
+
+## 4. Enviar a imagem (Push)
+
+Agora envie a imagem para o Docker Hub:
+
+```batch
+docker push seunome/meu-nginx:1.0
+docker push seunome/meu-nginx:latest
+```
+
+Ou envie todas as tags de uma vez:
+
+```batch
+docker push seunome/meu-nginx --all-tags
+```
+
+Acompanhe o progresso. Na primeira vez o upload pode demorar um pouco, dependendo do tamanho da imagem e da sua conexão.
+
+---
+
+## 5. Verificar no Docker Hub
+
+1. Acesse [https://hub.docker.com](https://hub.docker.com)
+2. Vá em **Repositories**
+3. Você verá o repositório `seunome/meu-nginx`
+4. Clique nele para ver as tags enviadas (`1.0` e `latest`)
+
+---
+
+## 6. Baixar a imagem de qualquer lugar (Pull)
+
+Agora qualquer pessoa (ou você em outra máquina) pode baixar sua imagem:
+
+```batch
+docker pull seunome/meu-nginx:1.0
+```
+
+Ou a versão latest:
+
+```batch
+docker pull seunome/meu-nginx
+```
+
+Rodar diretamente:
+
+```batch
+docker run -d -p 8080:80 --name site-nginx seunome/meu-nginx:1.0
+```
+
+---
+
+## 7. Atualizando a imagem
+
+Sempre que fizer alterações:
+
+```batch
+REM 1. Build com nova versão
+docker build -t meu-nginx:1.1 .
+
+REM 2. Criar as tags
+docker tag meu-nginx:1.1 seunome/meu-nginx:1.1
+docker tag meu-nginx:1.1 seunome/meu-nginx:latest
+
+REM 3. Enviar
+docker push seunome/meu-nginx:1.1
+docker push seunome/meu-nginx:latest
+```
+
+:::tip
+Use versionamento semântico (`1.0.0`, `1.1.0`, `2.0.0`) para facilitar o controle de versões.
+:::
+
+---
+
+## 8. Tornando o repositório privado (opcional)
+
+Por padrão as imagens são **públicas**.
+
+Para tornar privado:
+
+1. Acesse o repositório no Docker Hub
+2. Vá em **Settings**
+3. Altere a visibilidade para **Private**
+
+:::info
+Contas gratuitas têm limite de repositórios privados. Verifique o plano atual no Docker Hub.
+:::
+
+---
+
+## 9. Logout
+
+Quando terminar (especialmente em máquinas compartilhadas):
+
+```batch
+docker logout
+```
+
+---
+
+## 10. Fluxo completo resumido
+
+```batch
+REM 1. Login
+docker login
+
+REM 2. Build
+docker build -t meu-nginx:1.0 .
+
+REM 3. Tag
+docker tag meu-nginx:1.0 seunome/meu-nginx:1.0
+docker tag meu-nginx:1.0 seunome/meu-nginx:latest
+
+REM 4. Push
+docker push seunome/meu-nginx:1.0
+docker push seunome/meu-nginx:latest
+
+REM 5. (Opcional) Logout
+docker logout
+```
+
+---
+
+## 11. Boas práticas
+
+| Prática                        | Recomendação                                      |
+|--------------------------------|---------------------------------------------------|
+| Nome da imagem                 | Use `username/nome-curto`                         |
+| Tags                           | Sempre versione (`1.0`, `1.1`, `latest`)           |
+| Access Token                   | Prefira token em vez de senha                     |
+| Imagens grandes                | Use Multi-stage Builds para reduzir o tamanho     |
+| Informações sensíveis          | Nunca coloque senhas ou tokens dentro da imagem   |
+| Documentação                   | Adicione um README no repositório do Docker Hub   |
+| Automação                      | No futuro, use GitHub Actions para fazer push automático |
+
+:::danger
+Nunca faça commit de arquivos `.env` ou tokens no código. Use secrets em pipelines de CI/CD.
+:::
+
+---
+
+## Conclusão
+
+Agora você sabe:
+
+- Criar conta e fazer login no Docker Hub
+- Marcar (tag) corretamente suas imagens
+- Enviar (push) imagens para o registro público
+- Baixar (pull) e usar suas imagens em qualquer lugar
+- Versionar e atualizar imagens de forma profissional
+
+Sua imagem `seunome/meu-nginx` está pronta para ser compartilhada com o mundo!
+
+Próximos passos sugeridos:
+- Configurar GitHub Actions para fazer push automático
+- Explorar Docker Hub Organizations
+- Aprender sobre Docker Scout (análise de vulnerabilidades)

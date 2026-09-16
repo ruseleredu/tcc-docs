@@ -1,0 +1,353 @@
+---
+title: Multi-stage Builds no Docker
+description: Aprenda a usar Multi-stage Builds para criar imagens Docker menores, mais seguras e profissionais. Exemplos práticos com Nginx, Alpine e Node.js.
+sidebar_label: Multi-stage Builds
+---
+
+# Multi-stage Builds no Docker
+
+O **Multi-stage Build** (construção em múltiplos estágios) é um dos recursos mais importantes e poderosos do Docker. Ele permite criar imagens finais muito menores, mais seguras e otimizadas.
+
+Neste guia você aprenderá:
+
+- O que é e por que usar Multi-stage Builds
+- A estrutura básica
+- Exemplos práticos com Nginx e Alpine
+- Um exemplo realista com Node.js + Nginx
+- Boas práticas e dicas avançadas
+
+:::info
+Este tutorial complementa o guia principal de Docker no Windows com Nginx + VS Code.
+:::
+
+---
+
+## Por que usar Multi-stage Builds?
+
+| Problema sem Multi-stage                      | Solução com Multi-stage                          |
+|-----------------------------------------------|--------------------------------------------------|
+| Imagem final muito grande                     | Imagem final bem menor                           |
+| Ferramentas de build ficam na imagem          | Ferramentas ficam apenas no estágio de build     |
+| Maior superfície de ataque                    | Imagem final mais segura e limpa                 |
+| Dependências de compilação desnecessárias     | Apenas os artefatos finais são copiados          |
+| Builds difíceis de organizar                  | Dockerfile mais limpo e profissional             |
+
+:::tip
+Multi-stage é essencial quando você precisa **compilar** ou **gerar** algo (Go, Rust, Node, Java, scripts, etc.) e depois servir apenas o resultado com uma imagem mínima (Nginx, Alpine, Distroless...).
+:::
+
+---
+
+## Estrutura básica
+
+```dockerfile
+# Estágio 1 – Build (pode ser pesado)
+FROM alguma-imagem AS build
+# ... comandos de instalação e compilação ...
+
+# Estágio 2 – Final (leve e limpo)
+FROM imagem-leve
+COPY --from=build /caminho/do/artefato /destino
+```
+
+### Pontos importantes
+
+| Trecho                    | Função                                              |
+|---------------------------|-----------------------------------------------------|
+| `AS build`                | Dá um nome ao estágio                               |
+| `COPY --from=build`       | Copia arquivos de um estágio anterior               |
+| Novo `FROM`               | Inicia uma imagem completamente limpa               |
+| Apenas o necessário       | Tudo que não for copiado é descartado               |
+
+:::warning
+Cada instrução `FROM` inicia um **novo estágio**. Tudo o que não for copiado com `COPY --from=` é perdido.
+:::
+
+---
+
+## Exemplo prático com Nginx + Alpine
+
+Vamos criar uma página HTML gerada em tempo de build e servir apenas o resultado final com Nginx Alpine.
+
+### Estrutura de pastas
+
+```
+multi-stage-nginx/
+├── Dockerfile
+├── docker-compose.yml
+└── scripts/
+    └── gerar-pagina.sh
+```
+
+### Script de geração (`scripts/gerar-pagina.sh`)
+
+```sh
+#!/bin/sh
+echo "Gerando página estática..."
+
+mkdir -p /output
+
+cat > /output/index.html << EOF
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-stage Build</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    p { color: #94a3b8; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <h1>🚀 Multi-stage Build funcionando!</h1>
+  <p>Esta página foi gerada no estágio de build<br>e copiada para a imagem final.</p>
+  <p>Gerado em: $(date)</p>
+</body>
+</html>
+EOF
+
+echo "Página gerada com sucesso em /output/index.html"
+```
+
+### Dockerfile com Multi-stage
+
+```dockerfile
+# ============================================
+# Estágio 1: Build
+# ============================================
+FROM alpine:3.20 AS build
+
+# Instala apenas o necessário para o build
+RUN apk add --no-cache bash
+
+WORKDIR /src
+
+# Copia o script
+COPY scripts/gerar-pagina.sh .
+
+# Executa o script
+RUN chmod +x gerar-pagina.sh && \
+    ./gerar-pagina.sh
+
+# ============================================
+# Estágio 2: Imagem final (produção)
+# ============================================
+FROM nginx:alpine
+
+# Remove a página padrão do Nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia APENAS o resultado do estágio de build
+COPY --from=build /output/ /usr/share/nginx/html/
+
+# Variáveis de ambiente (opcional)
+ENV AMBIENTE=producao
+ENV APP_VERSION=2.0.0
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+---
+
+## Build e teste
+
+No **CMD** (ou terminal do VS Code):
+
+```batch
+docker build -t multi-stage-nginx:1.0 .
+```
+
+Execute o container:
+
+```batch
+docker run -d -p 8080:80 --name site-multi multi-stage-nginx:1.0
+```
+
+Acesse: [http://localhost:8080](http://localhost:8080)
+
+Você deverá ver a página gerada no estágio de build.
+
+### Comparar o tamanho das imagens
+
+```batch
+docker images
+```
+
+A imagem final será significativamente menor do que se tudo estivesse em um único estágio.
+
+---
+
+## Usando com Docker Compose
+
+Crie o arquivo `docker-compose.yml`:
+
+```yaml
+services:
+  web:
+    build: .
+    image: multi-stage-nginx:1.0
+    container_name: site-multi
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+```
+
+Suba o serviço:
+
+```batch
+docker compose up --build -d
+```
+
+---
+
+## Exemplo realista: Node.js + Nginx
+
+Um dos casos mais comuns de Multi-stage:
+
+```dockerfile
+# ============================================
+# Estágio 1: Build da aplicação Node.js
+# ============================================
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copia apenas os arquivos de dependência primeiro (melhor cache)
+COPY package*.json ./
+RUN npm ci
+
+# Copia o restante do código
+COPY . .
+
+# Gera a pasta de build (ex: dist ou build)
+RUN npm run build
+
+# ============================================
+# Estágio 2: Servir com Nginx
+# ============================================
+FROM nginx:alpine
+
+# Remove a página padrão
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia apenas o resultado do build
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+:::tip
+A ordem `COPY package*.json` → `RUN npm ci` → `COPY . .` aproveita melhor o cache de camadas do Docker.
+:::
+
+---
+
+## Exemplo com múltiplos estágios (Build + Test + Final)
+
+```dockerfile
+# Estágio 1: Dependências
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# Estágio 2: Build
+FROM deps AS build
+COPY . .
+RUN npm run build
+
+# Estágio 3: Testes (opcional)
+FROM build AS test
+RUN npm run test
+
+# Estágio 4: Imagem final
+FROM nginx:alpine AS final
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+Você pode construir até um estágio específico:
+
+```batch
+docker build --target test -t meu-app:test .
+docker build --target final -t meu-app:1.0 .
+```
+
+---
+
+## Boas práticas
+
+:::tip[Boas práticas recomendadas]
+- Dê nomes claros aos estágios (`AS builder`, `AS tester`, `AS final`)
+- Copie **apenas** o necessário com `COPY --from=`
+- Use imagens Alpine ou Distroless no estágio final
+- Evite deixar ferramentas de build (npm, maven, gcc, python-dev...) na imagem final
+- Combine Multi-stage com `.dockerignore` para builds mais rápidos
+- Use `--target` quando quiser construir apenas até determinado estágio
+:::
+
+:::warning
+Não coloque segredos (tokens, senhas, chaves) em nenhum estágio. Eles podem ficar no histórico de camadas.
+:::
+
+---
+
+## Comandos úteis
+
+```batch
+REM Build normal
+docker build -t minha-imagem:1.0 .
+
+REM Build até um estágio específico
+docker build --target build -t minha-imagem:build .
+
+REM Ver o tamanho das imagens
+docker images
+
+REM Inspecionar as camadas (avançado)
+docker history minha-imagem:1.0
+```
+
+---
+
+## Resumo
+
+| Recurso                         | Benefício                                      |
+|---------------------------------|------------------------------------------------|
+| Múltiplos `FROM`                | Separação clara entre build e runtime          |
+| `COPY --from=estagio`           | Traz apenas o que realmente interessa          |
+| Imagem final mínima             | Menor tamanho + mais segurança                 |
+| Fácil de manter                 | Dockerfile organizado e legível                |
+| Suporte a `--target`            | Flexibilidade para CI/CD e testes              |
+
+---
+
+## Conclusão
+
+Multi-stage Builds são fundamentais para criar imagens Docker profissionais. Dominando esse recurso você consegue:
+
+- Imagens muito menores
+- Maior segurança
+- Builds mais organizados
+- Melhor aproveitamento de cache
+
+Combine Multi-stage Builds com boas práticas de tag e push para o Docker Hub e você terá um fluxo de trabalho completo e moderno.
+
+

@@ -1,6 +1,6 @@
 ---
 title: Tutorial Docker no Windows com Nginx + VS Code
-description: Guia completo de instalação do Docker Desktop via winget, verificação do sistema, uso do VS Code como IDE, criação de Dockerfile com Nginx, build, cópia de arquivos, Docker Compose e execução de comandos em containers. Comandos no CMD.
+description: Guia completo de instalação do Docker Desktop via winget, verificação do sistema, uso do VS Code como IDE com perfil docker, criação de Dockerfile com Nginx, build, volumes, variáveis de ambiente, scripts shell, Docker Compose e execução de comandos em containers.
 sidebar_label: Docker no Windows + Nginx (VS Code)
 ---
 
@@ -12,9 +12,11 @@ Você aprenderá a:
 
 - Instalar o Docker Desktop via `winget`
 - Verificar se o sistema está pronto
-- Configurar o VS Code com a extensão ideal para Docker
+- Configurar o VS Code com um perfil dedicado `docker`
 - Criar e construir um `Dockerfile`
-- Copiar arquivos para a imagem
+- Trabalhar com **Volumes**
+- Usar **Variáveis de Ambiente**
+- Executar **scripts shell** dentro do container
 - Usar Docker Compose
 - Executar comandos dentro de containers
 
@@ -142,8 +144,6 @@ Os **Profiles** do VS Code permitem isolar extensões, configurações e layout 
 code --profile docker
 ```
 
-Isso abre o VS Code com o perfil `docker`. Se o perfil ainda não existir, ele será criado vazio.
-
 :::tip
 Para sempre abrir o projeto com esse perfil:
 
@@ -155,74 +155,30 @@ code . --profile docker
 
 ### 2. Instalar as extensões no perfil `docker`
 
-As extensões do VS Code **não são instaladas via winget**. O método oficial e recomendado é o CLI do próprio VS Code (`code --install-extension`).
+As extensões do VS Code **não são instaladas via winget**. O método oficial é o CLI do próprio VS Code.
 
-Abra o **CMD** e execute (com o perfil `docker` ativo ou especificando-o):
-
-```batch
-REM Instala a extensão principal (Container Tools - Microsoft)
-code --profile docker --install-extension ms-azuretools.vscode-containers
-
-REM Instala a extensão complementar (Docker DX - Docker Inc.)
-code --profile docker --install-extension docker.docker
-```
-
-Você também pode instalar as duas de uma vez:
+Abra o **CMD** e execute:
 
 ```batch
 code --profile docker --install-extension ms-azuretools.vscode-containers --install-extension docker.docker
 ```
 
-#### Extensões instaladas
+| Extensão            | ID                                | Função principal                                       |
+| ------------------- | --------------------------------- | ------------------------------------------------------ |
+| **Container Tools** | `ms-azuretools.vscode-containers` | Explorer visual de containers, imagens, volumes, redes |
+| **Docker DX**       | `docker.docker`                   | Linting avançado de Dockerfile e Compose               |
 
-| Extensão            | ID                                | Função principal                                                                     |
-| ------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
-| **Container Tools** | `ms-azuretools.vscode-containers` | Explorer visual de containers, imagens, volumes, redes, build/run com clique direito |
-| **Docker DX**       | `docker.docker`                   | Linting avançado de Dockerfile, Compose e Bake + detecção de vulnerabilidades        |
-
-### 3. Verificar as extensões instaladas no perfil
+Verifique as extensões instaladas:
 
 ```batch
 code --profile docker --list-extensions
 ```
 
-Você deve ver:
-
-```
-ms-azuretools.vscode-containers
-docker.docker
-```
-
-### 4. Definir o CMD como terminal padrão no perfil
+### 3. Definir o CMD como terminal padrão no perfil
 
 1. Com o perfil `docker` ativo, pressione `Ctrl + Shift + P`
 2. Digite: **Terminal: Select Default Profile**
 3. Escolha **Command Prompt**
-
-Ou adicione no `settings.json` do perfil:
-
-```json
-{
-  "terminal.integrated.defaultProfile.windows": "Command Prompt"
-}
-```
-
-### 5. Recursos das extensões
-
-[Container Tools](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-containers) oferece:
-
-- Explorer visual de containers, imagens, volumes e redes
-- Build, run, stop e remove com clique direito
-- IntelliSense básico para `Dockerfile` e `docker-compose.yml`
-- Visualização de logs
-- Attach de terminal ao container
-
-[Docker DX](https://marketplace.visualstudio.com/items?itemName=docker.docker) adiciona:
-
-- Linting avançado de Dockerfile
-- Sugestões de boas práticas
-- Melhor suporte a Compose e Bake
-- Detecção de vulnerabilidades em imagens (experimental)
 
 ### Abrindo o projeto no VS Code com o perfil docker
 
@@ -231,22 +187,22 @@ cd C:\caminho\para\meu-nginx
 code . --profile docker
 ```
 
-Agora todas as extensões e configurações do perfil `docker` estarão ativas.
-
 ---
 
 ## Projeto prático: Nginx com conteúdo personalizado
 
 ### Estrutura de pastas
 
-Crie a seguinte estrutura no VS Code (clique direito na pasta → New Folder / New File):
-
 ```
 meu-nginx/
 ├── Dockerfile
 ├── docker-compose.yml
-└── html/
-    └── index.html
+├── .env
+├── .dockerignore
+├── html/
+│   └── index.html
+└── scripts/
+    └── ola.sh
 ```
 
 ### Conteúdo do `index.html`
@@ -286,19 +242,25 @@ meu-nginx/
 Crie o arquivo `Dockerfile`:
 
 ```dockerfile
-# Imagem base oficial do Nginx (versão alpine = menor e mais leve)
 FROM nginx:alpine
 
-# Remove a página padrão do Nginx (opcional, mas limpo)
+# Variáveis de ambiente padrão
+ENV AMBIENTE=desenvolvimento
+ENV APP_VERSION=1.0.0
+ENV MENSAGEM="Valor padrao do Dockerfile"
+
+# Remove a página padrão do Nginx
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copia os arquivos da pasta local "html" para o diretório do Nginx
+# Copia os arquivos estáticos
 COPY html/ /usr/share/nginx/html/
 
-# Expõe a porta 80 (documentação + boa prática)
+# Copia o script e dá permissão de execução
+COPY scripts/ola.sh /usr/local/bin/ola.sh
+RUN chmod +x /usr/local/bin/ola.sh
+
 EXPOSE 80
 
-# Comando padrão (já existe na imagem oficial, mas podemos deixar explícito)
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
@@ -307,13 +269,14 @@ CMD ["nginx", "-g", "daemon off;"]
 | Instrução | Função                                         |
 | --------- | ---------------------------------------------- |
 | `FROM`    | Define a imagem base                           |
+| `ENV`     | Define variáveis de ambiente padrão            |
 | `RUN`     | Executa comandos durante o **build** da imagem |
 | `COPY`    | Copia arquivos/pastas do host para a imagem    |
 | `EXPOSE`  | Documenta a porta que o container usa          |
 | `CMD`     | Comando executado quando o container inicia    |
 
 :::tip
-No VS Code, com as extensões instaladas, você terá autocompletar e avisos de boas práticas enquanto escreve o Dockerfile.
+Use `COPY` em vez de `ADD` na maioria dos casos (mais previsível).
 :::
 
 ---
@@ -325,9 +288,6 @@ No terminal do VS Code (CMD), dentro da pasta do projeto, execute:
 ```batch
 docker build -t meu-nginx:1.0 .
 ```
-
-- `-t meu-nginx:1.0` → nome e tag da imagem
-- `.` → contexto de build (diretório atual)
 
 Verifique as imagens:
 
@@ -346,20 +306,11 @@ Acesse: [http://localhost:8080](http://localhost:8080)
 Comandos úteis:
 
 ```batch
-REM Ver containers em execução
 docker ps
-
-REM Ver logs
 docker logs site-nginx
-
-REM Parar e remover
 docker stop site-nginx
 docker rm site-nginx
 ```
-
-:::info[Alternativa com a extensão]
-Clique com o botão direito na imagem no painel **Containers** da extensão e escolha **Run**.
-:::
 
 ---
 
@@ -375,10 +326,15 @@ services:
     container_name: site-nginx
     ports:
       - "8080:80"
+    env_file:
+      - .env
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+      - ./scripts:/scripts:ro
     restart: unless-stopped
 ```
 
-### Comandos principais do Compose (no CMD)
+### Comandos principais do Compose
 
 | Comando                        | Descrição                                 |
 | ------------------------------ | ----------------------------------------- |
@@ -393,18 +349,220 @@ services:
 Exemplo completo:
 
 ```batch
-REM Build + start
 docker compose up --build -d
-
-REM Ver status
 docker compose ps
-
-REM Logs
 docker compose logs -f web
-
-REM Parar tudo
 docker compose down
 ```
+
+---
+
+## Volumes no Docker
+
+Volumes permitem **persistir dados** e **compartilhar arquivos** entre o host (Windows) e o container.
+
+| Tipo             | Descrição                                          | Uso comum                         |
+| ---------------- | -------------------------------------------------- | --------------------------------- |
+| **Bind Mount**   | Liga uma pasta do Windows a uma pasta do container | Desenvolvimento (código vivo)     |
+| **Named Volume** | Volume gerenciado pelo Docker                      | Dados persistentes (bancos, logs) |
+
+### 1. Bind Mount (pasta do Windows → container)
+
+Ideal para desenvolvimento: qualquer alteração no arquivo local aparece imediatamente no container.
+
+#### Exemplo com `docker run`
+
+```batch
+docker run -d -p 8080:80 --name site-nginx ^
+  -v %cd%\html:/usr/share/nginx/html:ro ^
+  meu-nginx:1.0
+```
+
+#### Exemplo com Docker Compose
+
+Já está configurado no `docker-compose.yml` acima:
+
+```yaml
+volumes:
+  - ./html:/usr/share/nginx/html:ro
+  - ./scripts:/scripts:ro
+```
+
+:::tip
+O modificador `:ro` significa **read-only** (somente leitura). Use sempre que possível para arquivos estáticos.
+:::
+
+### 2. Named Volume (volume gerenciado pelo Docker)
+
+```batch
+docker volume create nginx-data
+
+docker run -d -p 8080:80 --name site-nginx ^
+  -v nginx-data:/usr/share/nginx/html ^
+  meu-nginx:1.0
+```
+
+Com Compose:
+
+```yaml
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - nginx-data:/usr/share/nginx/html
+
+volumes:
+  nginx-data:
+```
+
+### Comandos úteis de volumes
+
+```batch
+docker volume ls
+docker volume inspect nginx-data
+docker volume rm nginx-data
+docker volume prune
+```
+
+:::info
+Com a extensão **Container Tools** você consegue ver e gerenciar volumes visualmente no painel lateral do VS Code.
+:::
+
+---
+
+## Variáveis de Ambiente no Docker
+
+Variáveis de ambiente são uma forma limpa de passar configurações para o container sem alterar o código ou a imagem.
+
+### 1. Definindo variáveis com `docker run`
+
+```batch
+docker run -d -p 8080:80 --name site-nginx ^
+  -e AMBIENTE=producao ^
+  -e APP_VERSION=1.0.0 ^
+  -e MENSAGEM="Ola do container" ^
+  meu-nginx:1.0
+```
+
+Carregar de um arquivo `.env`:
+
+```batch
+docker run -d -p 8080:80 --name site-nginx --env-file .env meu-nginx:1.0
+```
+
+### 2. Criando o arquivo `.env`
+
+```env
+AMBIENTE=desenvolvimento
+APP_VERSION=1.2.3
+MENSAGEM=Site rodando com Docker + Nginx
+NGINX_HOST=localhost
+```
+
+:::warning
+Adicione o arquivo `.env` no `.gitignore` para não versionar dados sensíveis (senhas, tokens, etc.).
+:::
+
+### 3. Usando variáveis no Docker Compose
+
+A forma mais limpa é com `env_file` (já configurado no exemplo anterior):
+
+```yaml
+env_file:
+  - .env
+```
+
+Ou definir diretamente:
+
+```yaml
+environment:
+  - AMBIENTE=producao
+  - APP_VERSION=1.0.0
+  - MENSAGEM=Ola do Compose
+```
+
+### 4. Definindo variáveis no Dockerfile (`ENV`)
+
+Valores padrão já estão definidos no `Dockerfile` mostrado anteriormente.
+
+:::tip
+Variáveis passadas com `-e` ou no Compose **sobrescrevem** as definidas no `Dockerfile`.
+:::
+
+### 5. Lendo as variáveis dentro do container
+
+```batch
+docker exec site-nginx printenv
+docker exec site-nginx printenv AMBIENTE
+docker exec site-nginx sh -c "echo %MENSAGEM%"
+```
+
+---
+
+## Executando um script shell (.sh) dentro do container
+
+### 1. Criar o script
+
+Crie o arquivo `scripts\ola.sh`:
+
+```sh
+#!/bin/sh
+
+echo "========================================"
+echo "  Script com Variáveis de Ambiente"
+echo "========================================"
+echo "Ambiente........: $AMBIENTE"
+echo "Versão..........: $APP_VERSION"
+echo "Mensagem........: $MENSAGEM"
+echo "Data e hora.....: $(date)"
+echo "Hostname........: $(hostname)"
+echo "Arquivos em /usr/share/nginx/html:"
+ls -la /usr/share/nginx/html
+echo "========================================"
+```
+
+### 2. Executar o script
+
+#### Com a imagem que já contém o script
+
+```batch
+docker exec site-nginx /usr/local/bin/ola.sh
+```
+
+#### Com Docker Compose
+
+```batch
+docker compose exec web /usr/local/bin/ola.sh
+```
+
+#### Alternativa rápida (sem rebuild) usando volume
+
+```batch
+docker exec site-nginx sh /scripts/ola.sh
+```
+
+### Exemplo de saída esperada
+
+```
+========================================
+  Script com Variáveis de Ambiente
+========================================
+Ambiente........: desenvolvimento
+Versão..........: 1.2.3
+Mensagem........: Site rodando com Docker + Nginx
+Data e hora.....: Wed Sep 16 16:55:12 UTC 2026
+Hostname........: a1b2c3d4e5f6
+Arquivos em /usr/share/nginx/html:
+total 8
+...
+========================================
+```
+
+:::tip
+Sempre use `#!/bin/sh` (ou `#!/bin/bash`) no início do script e dê permissão de execução com `chmod +x`.
+:::
 
 ---
 
@@ -413,11 +571,10 @@ docker compose down
 ### 1. Executar um comando pontual (`docker exec`)
 
 ```batch
-REM Abrir um shell interativo
 docker exec -it site-nginx sh
 ```
 
-Dentro do container você pode:
+Dentro do container:
 
 ```sh
 ls /usr/share/nginx/html
@@ -426,13 +583,10 @@ nginx -t
 exit
 ```
 
-Outros exemplos no CMD:
+Outros exemplos:
 
 ```batch
-REM Listar arquivos sem entrar no container
 docker exec site-nginx ls -la /usr/share/nginx/html
-
-REM Ver processos
 docker exec site-nginx ps aux
 ```
 
@@ -453,25 +607,27 @@ docker compose exec web sh
 ## Boas práticas e dicas finais
 
 1. **Use tags específicas** (`nginx:1.27-alpine` em vez de `nginx:latest`).
-2. **Multi-stage builds** são úteis em projetos maiores (reduzem tamanho final).
-3. **`.dockerignore`** – crie um arquivo para ignorar arquivos desnecessários no build.
-4. **Volumes** – para desenvolvimento, prefira montar pastas com volume:
+2. **Multi-stage builds** são úteis em projetos maiores.
+3. **`.dockerignore`** – crie um arquivo para ignorar arquivos desnecessários no build:
 
-```yaml
-services:
-  web:
-    image: nginx:alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - ./html:/usr/share/nginx/html:ro
+```dockerignore
+.git
+.env
+*.md
+node_modules
 ```
 
-5. Limpe recursos não utilizados:
+4. **Volumes** – para desenvolvimento, prefira bind mounts.
+5. **Variáveis sensíveis** – nunca coloque senhas no Dockerfile.
+6. Limpe recursos não utilizados:
 
 ```batch
 docker system prune -a
 ```
+
+:::danger
+O comando `docker system prune -a` remove **todas** as imagens não utilizadas. Use com cuidado.
+:::
 
 ---
 
@@ -484,15 +640,19 @@ winget install -e --id Docker.DockerDesktop
 REM Build
 docker build -t nome:tag .
 
-REM Run
-docker run -d -p 8080:80 --name container imagem
+REM Run com volume e variáveis
+docker run -d -p 8080:80 --name container ^
+  -v %cd%\html:/usr/share/nginx/html:ro ^
+  --env-file .env ^
+  imagem
 
 REM Compose
 docker compose up --build -d
 docker compose down
 
-REM Executar comandos
+REM Executar comandos e scripts
 docker exec -it container sh
+docker exec container /usr/local/bin/ola.sh
 docker compose exec servico sh
 ```
 
@@ -504,13 +664,15 @@ Você agora sabe:
 
 - Instalar o Docker Desktop no Windows via `winget`
 - Verificar o ambiente (WSL 2 + virtualização)
-- Configurar o **VS Code** com a extensão **Container Tools** (e opcionalmente Docker DX)
+- Configurar o **VS Code** com um perfil `docker` e as extensões **Container Tools** + **Docker DX**
 - Criar um `Dockerfile` baseado em Nginx
-- Copiar arquivos com `COPY`
-- Fazer build e rodar containers
+- Trabalhar com **Volumes** (bind mount e named volume)
+- Usar **Variáveis de Ambiente** (Dockerfile, `.env`, Compose e CLI)
+- Executar **scripts shell** dentro do container
 - Usar Docker Compose
 - Executar comandos dentro de containers (via CLI e pela extensão)
 
 Este é o fundamento para qualquer aplicação containerizada. A partir daqui você pode evoluir para aplicações Node.js, Python, bancos de dados e orquestração com Kubernetes.
 
 Bom aprendizado e bons containers! 🐳
+````
