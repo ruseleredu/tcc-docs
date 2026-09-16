@@ -326,7 +326,7 @@ services:
 
 No **CMD** (ou terminal do VS Code):
 
-```cmd
+```batch
 docker compose up --build -d
 ```
 
@@ -339,7 +339,7 @@ Acesse:
 
 ## 9. Verificando o tamanho da imagem
 
-```cmd
+```batch
 docker images
 ```
 
@@ -351,13 +351,13 @@ Você verá que a imagem final (`pdf-generator:1.0`) é muito menor do que os es
 
 ### Construir apenas até o estágio de geração
 
-```cmd
+```batch
 docker build --target generator -t pdf-generator:build .
 ```
 
 ### Copiar os PDFs gerados para o host
 
-```cmd
+```batch
 docker create --name temp pdf-generator:1.0
 docker cp temp:/usr/share/nginx/html ./pdfs-gerados
 docker rm temp
