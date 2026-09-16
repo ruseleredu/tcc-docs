@@ -1,0 +1,391 @@
+---
+title: Configurando o VS Code para o Stack React-PDF + SQLite + Docker
+description: Guia completo para configurar o Visual Studio Code como ambiente de desenvolvimento para o stack com better-sqlite3, @react-pdf/renderer, Multi-stage Builds e Nginx.
+sidebar_label: Ambiente VS Code
+---
+
+# Configurando o VS Code para o Stack React-PDF + SQLite + Docker
+
+Este guia mostra como deixar o **Visual Studio Code** pronto para trabalhar com o stack:
+
+- Node.js + `better-sqlite3`
+- `@react-pdf/renderer`
+- Multi-stage Builds
+- Nginx
+- Docker + Docker Compose
+
+:::info
+Recomendado usar o perfil `docker` criado no tutorial principal.
+:::
+
+---
+
+## 1. Criar / usar o perfil `docker`
+
+Se ainda não criou:
+
+```batch
+code --profile docker
+```
+
+Ou pela interface:
+
+1. `Ctrl + Shift + P`
+2. **Profiles: Create Profile**
+3. Escolha **Empty Profile**
+4. Nome: `docker`
+
+Sempre abra o projeto com o perfil:
+
+```batch
+code . --profile docker
+```
+
+---
+
+## 2. Extensões recomendadas
+
+Instale todas de uma vez pelo CMD:
+
+```batch
+code --profile docker --install-extension ms-azuretools.vscode-containers
+code --profile docker --install-extension docker.docker
+code --profile docker --install-extension dbaeumer.vscode-eslint
+code --profile docker --install-extension esbenp.prettier-vscode
+code --profile docker --install-extension bradlc.vscode-tailwindcss
+code --profile docker --install-extension qwtel.sqlite-viewer
+code --profile docker --install-extension mxrch.vscode-sqlite
+code --profile docker --install-extension formulahendry.code-runner
+code --profile docker --install-extension christian-kohler.path-intellisense
+code --profile docker --install-extension usernamehw.errorlens
+```
+
+### O que cada extensão faz
+
+| Extensão                    | Função principal                                      |
+|----------------------------|-------------------------------------------------------|
+| **Container Tools**        | Gerenciar containers, imagens, volumes e Compose      |
+| **Docker DX**              | Linting avançado de Dockerfile e Compose              |
+| **ESLint**                 | Análise estática de JavaScript/JSX                    |
+| **Prettier**               | Formatação automática de código                       |
+| **SQLite Viewer**          | Visualizar e consultar arquivos `.db`                 |
+| **SQLite**                 | Outra opção para explorar bancos SQLite               |
+| **Error Lens**             | Mostra erros e warnings inline                        |
+| **Path Intellisense**      | Autocompletar caminhos de arquivos                    |
+| **Code Runner**            | Executar scripts rapidamente                          |
+
+:::tip
+As extensões **SQLite Viewer** e **SQLite** permitem abrir o arquivo `data/app.db` diretamente no VS Code e rodar queries.
+:::
+
+---
+
+## 3. Configurações recomendadas do workspace
+
+Crie a pasta `.vscode` na raiz do projeto e adicione os arquivos abaixo.
+
+### `.vscode/settings.json`
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "files.associations": {
+    "*.jsx": "javascriptreact",
+    "Dockerfile*": "dockerfile"
+  }
+}
+```
+
+### `.vscode/extensions.json` (recomendações para o time)
+
+```json
+{
+  "recommendations": [
+    "ms-azuretools.vscode-containers",
+    "docker.docker",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "qwtel.sqlite-viewer",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense"
+  ]
+}
+```
+
+### `.vscode/tasks.json` (tarefas úteis)
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docker: Build",
+      "type": "shell",
+      "command": "docker compose up --build -d",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Docker: Down",
+      "type": "shell",
+      "command": "docker compose down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Gerar PDFs (local)",
+      "type": "shell",
+      "command": "node src/generate.js",
+      "problemMatcher": [],
+      "options": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      }
+    },
+    {
+      "label": "Validar dados SQLite",
+      "type": "shell",
+      "command": "node -e \"import('./src/validate.js').then(m => console.log(m.validateInvoices(require('./src/db.js').getInvoices())))\"",
+      "problemMatcher": []
+    }
+  ]
+}
+```
+
+Para rodar uma tarefa: `Ctrl + Shift + P` → **Tasks: Run Task**.
+
+---
+
+## 4. Configuração do ESLint + Prettier
+
+### Instalar dependências de desenvolvimento
+
+```batch
+npm install -D eslint prettier eslint-config-prettier eslint-plugin-react
+```
+
+### `.eslintrc.cjs`
+
+```js
+module.exports = {
+  env: {
+    node: true,
+    es2022: true,
+  },
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended',
+    'prettier',
+  ],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+  rules: {
+    'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off',
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+  },
+};
+```
+
+### `.prettierrc`
+
+```json
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "printWidth": 90,
+  "tabWidth": 2
+}
+```
+
+### `.prettierignore`
+
+```
+node_modules
+output
+pdfs-gerados
+data
+*.db
+```
+
+---
+
+## 5. Snippets úteis
+
+Crie o arquivo `.vscode/snippets.code-snippets`:
+
+```json
+{
+  "React PDF Document": {
+    "prefix": "rpdf",
+    "body": [
+      "import React from 'react';",
+      "import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';",
+      "",
+      "const styles = StyleSheet.create({",
+      "  page: {",
+      "    padding: 40,",
+      "    fontSize: 12,",
+      "  },",
+      "});",
+      "",
+      "export default function ${1:MyDocument}({ data }) {",
+      "  return (",
+      "    <Document>",
+      "      <Page size=\"A4\" style={styles.page}>",
+      "        <View>",
+      "          <Text>${2:Conteúdo}</Text>",
+      "        </View>",
+      "      </Page>",
+      "    </Document>",
+      "  );",
+      "}"
+    ],
+    "description": "Componente básico de PDF com react-pdf"
+  },
+  "Better SQLite Query": {
+    "prefix": "bsql",
+    "body": [
+      "const db = new Database('${1:data/app.db}', { readonly: true });",
+      "const rows = db.prepare('${2:SELECT * FROM tabela}').all();",
+      "db.close();"
+    ],
+    "description": "Query rápida com better-sqlite3"
+  }
+}
+```
+
+---
+
+## 6. Trabalhando com o banco SQLite no VS Code
+
+1. Instale a extensão **SQLite Viewer**
+2. Clique com o botão direito no arquivo `data/app.db`
+3. Escolha **Open Database**
+4. Explore tabelas, rode `SELECT` e verifique os dados
+
+:::tip
+Sempre valide os dados no VS Code antes de rodar o build Docker. Isso evita falhas desnecessárias no estágio de geração.
+:::
+
+---
+
+## 7. Fluxo de desenvolvimento recomendado
+
+### Desenvolvimento local (sem Docker)
+
+```batch
+npm install
+node src/generate.js
+```
+
+Os PDFs serão gerados em uma pasta local (ajuste o `OUTPUT_DIR` se necessário).
+
+### Testar o build completo
+
+```batch
+docker compose up --build -d
+```
+
+### Ver logs do container
+
+```batch
+docker compose logs -f
+```
+
+### Abrir shell no container
+
+```batch
+docker compose exec pdf-server sh
+```
+
+---
+
+## 8. Atalhos e dicas de produtividade
+
+| Ação                              | Atalho / Comando                          |
+|-----------------------------------|-------------------------------------------|
+| Abrir Command Palette             | `Ctrl + Shift + P`                        |
+| Rodar task de build               | `Ctrl + Shift + B`                        |
+| Formatar documento                | `Shift + Alt + F`                         |
+| Abrir terminal                    | `` Ctrl + ` ``                            |
+| Ir para arquivo                   | `Ctrl + P`                                |
+| Ver containers (Container Tools)  | Ícone de containers na barra lateral      |
+| Abrir banco SQLite                | Clique direito no `.db` → Open Database   |
+
+:::tip
+Com a extensão **Container Tools** você pode fazer build, start, stop, ver logs e attach shell com o mouse, sem digitar comandos.
+:::
+
+---
+
+## 9. Checklist final do ambiente
+
+Antes de começar a desenvolver, confirme:
+
+- [ ] Perfil `docker` criado e ativo
+- [ ] Extensões instaladas (Container Tools, Docker DX, ESLint, Prettier, SQLite Viewer)
+- [ ] Terminal padrão definido como **Command Prompt**
+- [ ] Arquivos `.vscode/settings.json` e `extensions.json` criados
+- [ ] ESLint + Prettier configurados
+- [ ] Consegue abrir e consultar o arquivo `data/app.db`
+- [ ] `docker compose up --build` funciona sem erros
+
+---
+
+## Conclusão
+
+Com esse ambiente configurado você terá:
+
+- IntelliSense e linting para JavaScript/JSX
+- Formatação automática
+- Visualização fácil do banco SQLite
+- Integração completa com Docker
+- Tasks prontas para build e geração de PDFs
+- Snippets para acelerar a criação de componentes PDF
+
+Agora o VS Code está otimizado para o stack **React-PDF + better-sqlite3 + Multi-stage + Nginx**.
