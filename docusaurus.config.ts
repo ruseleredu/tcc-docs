@@ -109,6 +109,7 @@ const config: Config = {
         "docker",
         "perl",
         "java",
+        "batch",
       ],
     },
   } satisfies Preset.ThemeConfig,

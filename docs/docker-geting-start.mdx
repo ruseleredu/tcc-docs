@@ -1,0 +1,516 @@
+---
+title: Tutorial Docker no Windows com Nginx + VS Code
+description: Guia completo de instalação do Docker Desktop via winget, verificação do sistema, uso do VS Code como IDE, criação de Dockerfile com Nginx, build, cópia de arquivos, Docker Compose e execução de comandos em containers. Comandos no CMD.
+sidebar_label: Docker no Windows + Nginx (VS Code)
+---
+
+# Tutorial: Docker no Windows com Nginx + Visual Studio Code
+
+Este tutorial ensina a instalar e utilizar o **Docker Desktop** no Windows, usando o **Visual Studio Code** como IDE e o **Prompt de Comando (CMD)** para executar os comandos.
+
+Você aprenderá a:
+
+- Instalar o Docker Desktop via `winget`
+- Verificar se o sistema está pronto
+- Configurar o VS Code com a extensão ideal para Docker
+- Criar e construir um `Dockerfile`
+- Copiar arquivos para a imagem
+- Usar Docker Compose
+- Executar comandos dentro de containers
+
+---
+
+## Pré-requisitos do sistema
+
+Antes de instalar o Docker Desktop, confirme os requisitos:
+
+| Requisito           | Detalhe                                                         |
+| ------------------- | --------------------------------------------------------------- |
+| Sistema operacional | Windows 10 64-bit (21H2 ou superior) ou Windows 11              |
+| Arquitetura         | x64 ou ARM64                                                    |
+| Memória RAM         | Mínimo 4 GB (recomendado 8 GB ou mais)                          |
+| Virtualização       | Hardware virtualization (Intel VT-x / AMD-V) habilitada na BIOS |
+| WSL 2               | Recomendado (backend padrão)                                    |
+| Espaço em disco     | Pelo menos 6 GB livres                                          |
+| IDE                 | Visual Studio Code instalado                                    |
+
+### Verificar virtualização
+
+1. Abra o **Gerenciador de Tarefas** (`Ctrl + Shift + Esc`)
+2. Vá na aba **Desempenho** → **CPU**
+3. Confirme que **Virtualização** está **Habilitada**
+
+### Habilitar WSL 2 (recomendado)
+
+Abra o **Prompt de Comando como Administrador** e execute:
+
+```batch
+wsl --install
+```
+
+Reinicie o computador se solicitado. Depois atualize:
+
+```batch
+wsl --update
+wsl --set-default-version 2
+```
+
+Verifique a versão:
+
+```batch
+wsl --version
+```
+
+---
+
+## Instalação do Docker Desktop via winget
+
+O `winget` é o gerenciador de pacotes oficial da Microsoft.
+
+### 1. Verificar se o winget está disponível
+
+Abra o **CMD** e execute:
+
+```batch
+winget --version
+```
+
+### 2. Instalar o Docker Desktop
+
+```batch
+winget install -e --id Docker.DockerDesktop
+```
+
+Aceite os termos se solicitado (`Y`).
+
+### 3. Iniciar o Docker Desktop
+
+Após a instalação:
+
+1. Abra o **Docker Desktop** pelo menu Iniciar
+2. Aceite os termos de serviço
+3. Aguarde até o status ficar **Running** (ícone da baleia na bandeja do sistema)
+
+---
+
+## Verificação da instalação
+
+Abra um novo **CMD** e execute:
+
+```batch
+docker --version
+docker compose version
+docker info
+```
+
+Teste rápido com a imagem oficial do Nginx:
+
+```batch
+docker run --rm -d -p 8080:80 --name teste-nginx nginx
+```
+
+Acesse no navegador: [http://localhost:8080](http://localhost:8080)
+
+Você deve ver a página padrão do Nginx.
+
+Pare o container:
+
+```batch
+docker stop teste-nginx
+```
+
+---
+
+## Configurando o Visual Studio Code
+
+### 1. Criar um perfil dedicado chamado `docker`
+
+Os **Profiles** do VS Code permitem isolar extensões, configurações e layout para diferentes contextos de trabalho.
+
+#### Opção A – Pela interface (recomendada)
+
+1. Abra o VS Code
+2. Pressione `Ctrl + Shift + P`
+3. Digite e selecione: **Profiles: Create Profile**
+4. Escolha **Empty Profile** (perfil vazio)
+5. Digite o nome: `docker`
+6. Confirme
+
+#### Opção B – Pelo CMD (cria o perfil automaticamente se não existir)
+
+```batch
+code --profile docker
+```
+
+Isso abre o VS Code com o perfil `docker`. Se o perfil ainda não existir, ele será criado vazio.
+
+:::tip
+Para sempre abrir o projeto com esse perfil:
+
+```batch
+code . --profile docker
+```
+
+:::
+
+### 2. Instalar as extensões no perfil `docker`
+
+As extensões do VS Code **não são instaladas via winget**. O método oficial e recomendado é o CLI do próprio VS Code (`code --install-extension`).
+
+Abra o **CMD** e execute (com o perfil `docker` ativo ou especificando-o):
+
+```batch
+REM Instala a extensão principal (Container Tools - Microsoft)
+code --profile docker --install-extension ms-azuretools.vscode-containers
+
+REM Instala a extensão complementar (Docker DX - Docker Inc.)
+code --profile docker --install-extension docker.docker
+```
+
+Você também pode instalar as duas de uma vez:
+
+```batch
+code --profile docker --install-extension ms-azuretools.vscode-containers --install-extension docker.docker
+```
+
+#### Extensões instaladas
+
+| Extensão            | ID                                | Função principal                                                                     |
+| ------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| **Container Tools** | `ms-azuretools.vscode-containers` | Explorer visual de containers, imagens, volumes, redes, build/run com clique direito |
+| **Docker DX**       | `docker.docker`                   | Linting avançado de Dockerfile, Compose e Bake + detecção de vulnerabilidades        |
+
+### 3. Verificar as extensões instaladas no perfil
+
+```batch
+code --profile docker --list-extensions
+```
+
+Você deve ver:
+
+```
+ms-azuretools.vscode-containers
+docker.docker
+```
+
+### 4. Definir o CMD como terminal padrão no perfil
+
+1. Com o perfil `docker` ativo, pressione `Ctrl + Shift + P`
+2. Digite: **Terminal: Select Default Profile**
+3. Escolha **Command Prompt**
+
+Ou adicione no `settings.json` do perfil:
+
+```json
+{
+  "terminal.integrated.defaultProfile.windows": "Command Prompt"
+}
+```
+
+### 5. Recursos das extensões
+
+[Container Tools](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-containers) oferece:
+
+- Explorer visual de containers, imagens, volumes e redes
+- Build, run, stop e remove com clique direito
+- IntelliSense básico para `Dockerfile` e `docker-compose.yml`
+- Visualização de logs
+- Attach de terminal ao container
+
+[Docker DX](https://marketplace.visualstudio.com/items?itemName=docker.docker) adiciona:
+
+- Linting avançado de Dockerfile
+- Sugestões de boas práticas
+- Melhor suporte a Compose e Bake
+- Detecção de vulnerabilidades em imagens (experimental)
+
+### Abrindo o projeto no VS Code com o perfil docker
+
+```batch
+cd C:\caminho\para\meu-nginx
+code . --profile docker
+```
+
+Agora todas as extensões e configurações do perfil `docker` estarão ativas.
+
+---
+
+## Projeto prático: Nginx com conteúdo personalizado
+
+### Estrutura de pastas
+
+Crie a seguinte estrutura no VS Code (clique direito na pasta → New Folder / New File):
+
+```
+meu-nginx/
+├── Dockerfile
+├── docker-compose.yml
+└── html/
+    └── index.html
+```
+
+### Conteúdo do `index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Meu Site com Nginx + Docker</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      h1 {
+        font-size: 2.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 Site rodando com Nginx no Docker!</h1>
+  </body>
+</html>
+```
+
+---
+
+## Explorando o Dockerfile
+
+Crie o arquivo `Dockerfile`:
+
+```dockerfile
+# Imagem base oficial do Nginx (versão alpine = menor e mais leve)
+FROM nginx:alpine
+
+# Remove a página padrão do Nginx (opcional, mas limpo)
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia os arquivos da pasta local "html" para o diretório do Nginx
+COPY html/ /usr/share/nginx/html/
+
+# Expõe a porta 80 (documentação + boa prática)
+EXPOSE 80
+
+# Comando padrão (já existe na imagem oficial, mas podemos deixar explícito)
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Principais instruções explicadas
+
+| Instrução | Função                                         |
+| --------- | ---------------------------------------------- |
+| `FROM`    | Define a imagem base                           |
+| `RUN`     | Executa comandos durante o **build** da imagem |
+| `COPY`    | Copia arquivos/pastas do host para a imagem    |
+| `EXPOSE`  | Documenta a porta que o container usa          |
+| `CMD`     | Comando executado quando o container inicia    |
+
+:::tip
+No VS Code, com as extensões instaladas, você terá autocompletar e avisos de boas práticas enquanto escreve o Dockerfile.
+:::
+
+---
+
+## Build da imagem
+
+No terminal do VS Code (CMD), dentro da pasta do projeto, execute:
+
+```batch
+docker build -t meu-nginx:1.0 .
+```
+
+- `-t meu-nginx:1.0` → nome e tag da imagem
+- `.` → contexto de build (diretório atual)
+
+Verifique as imagens:
+
+```batch
+docker images
+```
+
+### Rodar o container a partir da imagem
+
+```batch
+docker run -d -p 8080:80 --name site-nginx meu-nginx:1.0
+```
+
+Acesse: [http://localhost:8080](http://localhost:8080)
+
+Comandos úteis:
+
+```batch
+REM Ver containers em execução
+docker ps
+
+REM Ver logs
+docker logs site-nginx
+
+REM Parar e remover
+docker stop site-nginx
+docker rm site-nginx
+```
+
+:::info[Alternativa com a extensão]
+Clique com o botão direito na imagem no painel **Containers** da extensão e escolha **Run**.
+:::
+
+---
+
+## Docker Compose – comandos básicos
+
+Crie o arquivo `docker-compose.yml`:
+
+```yaml
+services:
+  web:
+    build: .
+    image: meu-nginx:1.0
+    container_name: site-nginx
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+```
+
+### Comandos principais do Compose (no CMD)
+
+| Comando                        | Descrição                                 |
+| ------------------------------ | ----------------------------------------- |
+| `docker compose up -d`         | Sobe os serviços em background            |
+| `docker compose up --build -d` | Faz build e sobe                          |
+| `docker compose down`          | Para e remove containers, redes e volumes |
+| `docker compose ps`            | Lista os serviços                         |
+| `docker compose logs -f`       | Mostra logs em tempo real                 |
+| `docker compose build`         | Apenas constrói as imagens                |
+| `docker compose restart`       | Reinicia os serviços                      |
+
+Exemplo completo:
+
+```batch
+REM Build + start
+docker compose up --build -d
+
+REM Ver status
+docker compose ps
+
+REM Logs
+docker compose logs -f web
+
+REM Parar tudo
+docker compose down
+```
+
+---
+
+## Executar comandos dentro do container
+
+### 1. Executar um comando pontual (`docker exec`)
+
+```batch
+REM Abrir um shell interativo
+docker exec -it site-nginx sh
+```
+
+Dentro do container você pode:
+
+```sh
+ls /usr/share/nginx/html
+cat /usr/share/nginx/html/index.html
+nginx -t
+exit
+```
+
+Outros exemplos no CMD:
+
+```batch
+REM Listar arquivos sem entrar no container
+docker exec site-nginx ls -la /usr/share/nginx/html
+
+REM Ver processos
+docker exec site-nginx ps aux
+```
+
+### 2. Usando Docker Compose
+
+```batch
+docker compose exec web sh
+```
+
+### 3. Pela extensão Container Tools
+
+1. Abra o painel **Containers**
+2. Clique com o botão direito no container
+3. Escolha **Attach Shell**
+
+---
+
+## Boas práticas e dicas finais
+
+1. **Use tags específicas** (`nginx:1.27-alpine` em vez de `nginx:latest`).
+2. **Multi-stage builds** são úteis em projetos maiores (reduzem tamanho final).
+3. **`.dockerignore`** – crie um arquivo para ignorar arquivos desnecessários no build.
+4. **Volumes** – para desenvolvimento, prefira montar pastas com volume:
+
+```yaml
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+```
+
+5. Limpe recursos não utilizados:
+
+```batch
+docker system prune -a
+```
+
+---
+
+## Resumo dos comandos mais usados (CMD)
+
+```batch
+REM Instalação
+winget install -e --id Docker.DockerDesktop
+
+REM Build
+docker build -t nome:tag .
+
+REM Run
+docker run -d -p 8080:80 --name container imagem
+
+REM Compose
+docker compose up --build -d
+docker compose down
+
+REM Executar comandos
+docker exec -it container sh
+docker compose exec servico sh
+```
+
+---
+
+## Conclusão
+
+Você agora sabe:
+
+- Instalar o Docker Desktop no Windows via `winget`
+- Verificar o ambiente (WSL 2 + virtualização)
+- Configurar o **VS Code** com a extensão **Container Tools** (e opcionalmente Docker DX)
+- Criar um `Dockerfile` baseado em Nginx
+- Copiar arquivos com `COPY`
+- Fazer build e rodar containers
+- Usar Docker Compose
+- Executar comandos dentro de containers (via CLI e pela extensão)
+
+Este é o fundamento para qualquer aplicação containerizada. A partir daqui você pode evoluir para aplicações Node.js, Python, bancos de dados e orquestração com Kubernetes.
+
+Bom aprendizado e bons containers! 🐳
