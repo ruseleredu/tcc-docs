@@ -1,0 +1,408 @@
+---
+title: Multi-stage Builds com React-PDF e better-sqlite3
+description: Aprenda a usar Multi-stage Builds no Docker para gerar PDFs com @react-pdf/renderer a partir de dados lidos com better-sqlite3, servindo o resultado final com Nginx.
+sidebar_label: Multi-stage + React-PDF + SQLite
+---
+
+# Multi-stage Builds com React-PDF e better-sqlite3
+
+Neste guia você aprenderá a criar um **Multi-stage Build** realista que:
+
+1. Lê dados de um banco **SQLite** usando `better-sqlite3`
+2. Gera PDFs com `@react-pdf/renderer`
+3. Serve apenas os PDFs gerados com **Nginx Alpine** (imagem final mínima)
+
+:::info
+Este tutorial complementa o guia principal de Docker no Windows + VS Code.
+:::
+
+---
+
+## Por que Multi-stage neste cenário?
+
+| Problema                                      | Solução com Multi-stage                                      |
+|-----------------------------------------------|--------------------------------------------------------------|
+| `better-sqlite3` precisa de compilação nativa | Compila apenas no estágio de build                           |
+| `@react-pdf/renderer` + React pesam bastante  | Ficam apenas no estágio de geração                           |
+| Imagem final não precisa de Node.js           | Usa Nginx Alpine (muito menor e mais segura)                 |
+| Ferramentas de build (python, g++, make)      | Não entram na imagem final                                   |
+
+:::tip
+`better-sqlite3` é um módulo **nativo**. Por isso precisamos de `python3`, `make` e `g++` no estágio de build.
+:::
+
+---
+
+## Estrutura do projeto
+
+```
+pdf-generator/
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+├── data/
+│   └── app.db                  # Banco SQLite de exemplo
+├── src/
+│   ├── generate.js             # Script principal
+│   └── InvoiceDocument.jsx     # Componente do PDF
+└── .dockerignore
+```
+
+---
+
+## 1. package.json
+
+```json
+{
+  "name": "pdf-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate.js"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^4.0.0",
+    "better-sqlite3": "^11.0.0",
+    "react": "^18.3.1"
+  }
+}
+```
+
+---
+
+## 2. Criando o banco SQLite de exemplo
+
+Você pode criar o arquivo `data/app.db` com o seguinte script (rode uma vez localmente):
+
+```js
+// scripts/create-db.js
+import Database from 'better-sqlite3';
+import fs from 'fs';
+
+fs.mkdirSync('data', { recursive: true });
+
+const db = new Database('data/app.db');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS invoices (
+    id INTEGER PRIMARY KEY,
+    customer TEXT NOT NULL,
+    amount REAL NOT NULL,
+    description TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  INSERT INTO invoices (customer, amount, description) VALUES
+    ('Empresa Alpha Ltda', 1500.00, 'Consultoria de infraestrutura'),
+    ('Beta Comércio', 890.50, 'Suporte mensal'),
+    ('Gamma Tech', 3200.00, 'Desenvolvimento de API');
+`);
+
+console.log('Banco criado com sucesso!');
+db.close();
+```
+
+---
+
+## 3. Componente do PDF (`src/InvoiceDocument.jsx`)
+
+```jsx
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontSize: 12,
+    fontFamily: 'Helvetica',
+  },
+  header: {
+    marginBottom: 20,
+    borderBottom: '1 solid #333',
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  label: {
+    color: '#555',
+  },
+  value: {
+    fontWeight: 'bold',
+  },
+  footer: {
+    marginTop: 30,
+    fontSize: 10,
+    color: '#888',
+  },
+});
+
+export default function InvoiceDocument({ invoice }) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Fatura #{invoice.id}</Text>
+          <Text>Gerada em: {new Date().toLocaleString('pt-BR')}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Cliente:</Text>
+          <Text style={styles.value}>{invoice.customer}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Descrição:</Text>
+          <Text style={styles.value}>{invoice.description}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Valor:</Text>
+          <Text style={styles.value}>
+            R$ {Number(invoice.amount).toFixed(2)}
+          </Text>
+        </View>
+
+        <Text style={styles.footer}>
+          Documento gerado automaticamente via Multi-stage Build
+        </Text>
+      </Page>
+    </Document>
+  );
+}
+```
+
+---
+
+## 4. Script de geração (`src/generate.js`)
+
+```js
+import Database from 'better-sqlite3';
+import React from 'react';
+import ReactPDF from '@react-pdf/renderer';
+import fs from 'fs';
+import path from 'path';
+import InvoiceDocument from './InvoiceDocument.jsx';
+
+const OUTPUT_DIR = '/output';
+
+async function main() {
+  console.log('Lendo dados do SQLite...');
+
+  const db = new Database('/app/data/app.db', { readonly: true });
+  const invoices = db.prepare('SELECT * FROM invoices').all();
+  db.close();
+
+  console.log(`Encontradas ${invoices.length} faturas.`);
+
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+
+  for (const invoice of invoices) {
+    const fileName = `fatura-${invoice.id}.pdf`;
+    const filePath = path.join(OUTPUT_DIR, fileName);
+
+    console.log(`Gerando ${fileName}...`);
+
+    await ReactPDF.renderToFile(
+      <InvoiceDocument invoice={invoice} />,
+      filePath
+    );
+  }
+
+  console.log('Todos os PDFs foram gerados com sucesso!');
+}
+
+main().catch((err) => {
+  console.error('Erro ao gerar PDFs:', err);
+  process.exit(1);
+});
+```
+
+---
+
+## 5. Dockerfile Multi-stage
+
+```dockerfile
+# ============================================
+# Estágio 1: Dependências + compilação nativa
+# ============================================
+FROM node:20-alpine AS deps
+
+# Ferramentas necessárias para better-sqlite3
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+
+# Instala as dependências (compila better-sqlite3)
+RUN npm ci
+
+# ============================================
+# Estágio 2: Geração dos PDFs
+# ============================================
+FROM node:20-alpine AS generator
+
+WORKDIR /app
+
+# Copia node_modules já compilados
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+
+# Copia código-fonte e banco de dados
+COPY src ./src
+COPY data ./data
+
+# Gera os PDFs
+RUN node src/generate.js
+
+# ============================================
+# Estágio 3: Imagem final (apenas Nginx)
+# ============================================
+FROM nginx:alpine AS final
+
+# Remove a página padrão
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia APENAS os PDFs gerados
+COPY --from=generator /output/ /usr/share/nginx/html/
+
+# Página simples de listagem (opcional)
+RUN echo '<!DOCTYPE html><html><body><h1>PDFs Gerados</h1><ul>' > /usr/share/nginx/html/index.html && \
+    for f in /usr/share/nginx/html/*.pdf; do \
+      name=$(basename "$f"); \
+      echo "<li><a href=\"$name\">$name</a></li>" >> /usr/share/nginx/html/index.html; \
+    done && \
+    echo '</ul></body></html>' >> /usr/share/nginx/html/index.html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+:::tip
+Observe que a imagem final **não contém Node.js**, nem `better-sqlite3`, nem React. Apenas os PDFs + Nginx.
+:::
+
+---
+
+## 6. .dockerignore
+
+```dockerignore
+node_modules
+npm-debug.log
+.git
+.env
+*.md
+Dockerfile
+docker-compose.yml
+```
+
+---
+
+## 7. docker-compose.yml
+
+```yaml
+services:
+  pdf-server:
+    build: .
+    image: pdf-generator:1.0
+    container_name: pdf-server
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+```
+
+---
+
+## 8. Build e execução
+
+No **CMD** (ou terminal do VS Code):
+
+```cmd
+docker compose up --build -d
+```
+
+Acesse:
+
+- Listagem: [http://localhost:8080](http://localhost:8080)
+- PDF individual: [http://localhost:8080/fatura-1.pdf](http://localhost:8080/fatura-1.pdf)
+
+---
+
+## 9. Verificando o tamanho da imagem
+
+```cmd
+docker images
+```
+
+Você verá que a imagem final (`pdf-generator:1.0`) é muito menor do que os estágios intermediários, pois contém apenas Nginx + os arquivos PDF.
+
+---
+
+## 10. Variantes úteis
+
+### Construir apenas até o estágio de geração
+
+```cmd
+docker build --target generator -t pdf-generator:build .
+```
+
+### Copiar os PDFs gerados para o host
+
+```cmd
+docker create --name temp pdf-generator:1.0
+docker cp temp:/usr/share/nginx/html ./pdfs-gerados
+docker rm temp
+```
+
+---
+
+## Boas práticas aplicadas neste exemplo
+
+| Prática                              | Como foi aplicado                                      |
+|--------------------------------------|--------------------------------------------------------|
+| Compilação nativa isolada            | `better-sqlite3` compilado apenas no estágio `deps`    |
+| Separação de responsabilidades       | `deps` → `generator` → `final`                         |
+| Imagem final mínima                  | Apenas Nginx Alpine + PDFs                             |
+| Cache eficiente                      | `package.json` copiado antes do código-fonte           |
+| Sem ferramentas de build no runtime  | `python3`, `make` e `g++` não existem na imagem final  |
+
+:::warning
+Nunca copie a pasta `node_modules` do seu Windows para o container. Sempre instale/compile dentro do Linux (como fizemos no estágio `deps`).
+:::
+
+:::danger
+Não coloque bancos de dados com dados sensíveis ou tokens dentro da imagem final. Neste exemplo o SQLite é usado apenas no estágio de geração.
+:::
+
+---
+
+## Resumo do fluxo
+
+```
+1. deps        → instala dependências + compila better-sqlite3
+2. generator   → lê o SQLite + gera os PDFs com react-pdf
+3. final       → Nginx serve apenas os PDFs gerados
+```
+
+---
+
+## Conclusão
+
+Com este Multi-stage Build você consegue:
+
+- Usar módulos nativos (`better-sqlite3`) de forma segura
+- Gerar PDFs profissionais com `@react-pdf/renderer`
+- Entregar uma imagem final extremamente leve e segura
+- Manter o Dockerfile organizado e fácil de manter
+
+Esse padrão é amplamente usado em pipelines de geração de relatórios, notas fiscais, contratos e documentos em geral.
+
