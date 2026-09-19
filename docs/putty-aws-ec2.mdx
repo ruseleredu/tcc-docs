@@ -1,0 +1,125 @@
+---
+title: Conectar a uma instância EC2 da AWS com PuTTY
+description: Guia completo em português para configurar o PuTTY e conectar via SSH a uma VM (EC2) hospedada na AWS.
+sidebar_label: PuTTY + AWS EC2
+---
+
+# Conectar a uma instância EC2 da AWS com PuTTY
+
+Este guia mostra como configurar o **PuTTY** no Windows para acessar uma instância Linux na AWS (EC2) usando autenticação por chave privada.
+
+## Pré-requisitos
+
+- Instância EC2 em execução com **IP público** ou **DNS público**
+- Security Group permitindo **SSH (porta 22)** a partir do seu IP (prefira o IP específico em vez de `0.0.0.0/0`)
+- Arquivo de chave privada `.pem` baixado no momento da criação da instância
+- PuTTY + PuTTYgen instalados ([download oficial](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html))
+
+:::tip[Utiliza winget para instalar o PuTTY + PuTTYgen]
+
+```bash
+winget install -e --id PuTTY.PuTTY
+```
+
+:::
+
+## 1. Converter `.pem` → `.ppk` com PuTTYgen
+
+O PuTTY não utiliza o formato `.pem` da AWS. É necessário converter para `.ppk`:
+
+1. Abra o **PuTTYgen**.
+2. Clique em **Load**.
+3. Altere o filtro de arquivos para **All Files (_._)**.
+4. Selecione o arquivo `.pem` e clique em **Open**.
+5. (Opcional, mas recomendado) Defina uma senha (passphrase).
+6. Clique em **Save private key** e salve o arquivo como `.ppk`.
+
+:::tip
+Mantenha o arquivo `.ppk` (e o `.pem` original) em local seguro. Nunca compartilhe a chave privada.
+:::
+
+## 2. Configurar o PuTTY
+
+### Sessão básica
+
+1. Abra o **PuTTY**.
+2. Na categoria **Session**:
+   - **Host Name (or IP address)**: `usuario@ip-ou-dns-publico`  
+     Exemplos:
+     - Amazon Linux: `ec2-user@ec2-xx-xx-xx-xx.compute-1.amazonaws.com`
+     - Ubuntu: `ubuntu@...`
+   - **Port**: `22`
+   - **Connection type**: `SSH`
+3. Em **Saved Sessions**, digite um nome e clique em **Save**.
+
+### Opções que controlam a conexão
+
+#### Connection (TCP e Keep-alive)
+
+- **Seconds between keepalives**: `30` ou `60` (evita desconexões por inatividade)
+- **Enable TCP keepalives**: marcado (recomendado)
+
+#### Connection → Data
+
+- **Auto-login username**: defina o usuário padrão (`ec2-user`, `ubuntu`, etc.)
+
+#### Connection → SSH
+
+- **Preferred SSH protocol version**: `2 only`
+- Deixe as demais opções de criptografia e MAC nos valores padrão
+
+#### Connection → SSH → Auth (ou Auth → Credentials)
+
+- **Private key file for authentication**: clique em **Browse** e selecione o arquivo `.ppk`
+- **Allow agent forwarding**: opcional (útil com Pageant)
+- **Attempt authentication using Pageant**: marcado se usar o agente
+
+#### Outras categorias úteis
+
+| Categoria                  | Uso principal                       |
+| -------------------------- | ----------------------------------- |
+| Connection → Proxy         | Quando precisa de proxy HTTP/SOCKS  |
+| Connection → SSH → Tunnels | Port forwarding (local/remoto)      |
+| Window → Appearance        | Fonte, cores, tamanho da janela     |
+| Terminal                   | Configurações de teclado e terminal |
+
+:::info
+Após alterar qualquer opção, volte para **Session** e clique em **Save** novamente para gravar as alterações.
+:::
+
+## 3. Conectar
+
+1. Selecione a sessão salva.
+2. Clique em **Open**.
+3. Na primeira conexão, aceite a impressão digital do host (clique em **Yes** / **Accept**).
+4. Você deve entrar diretamente no terminal da instância.
+
+## Usuários padrão por AMI
+
+| AMI / Distribuição                   | Usuário padrão         |
+| ------------------------------------ | ---------------------- |
+| Amazon Linux / Amazon Linux 2 / 2023 | `ec2-user`             |
+| Ubuntu                               | `ubuntu`               |
+| Debian                               | `admin`                |
+| CentOS / Rocky / Alma                | `centos` ou `ec2-user` |
+| RHEL / SUSE                          | `ec2-user`             |
+| Bitnami                              | `bitnami`              |
+
+## Solução de problemas comuns
+
+| Problema                                        | Possível causa e solução                                                          |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| `No supported authentication methods available` | Usuário incorreto, chave `.ppk` errada ou não carregada                           |
+| Timeout de conexão                              | Security Group não libera a porta 22 do seu IP, ou a instância não tem IP público |
+| Desconexões frequentes                          | Aumente o valor de **Seconds between keepalives**                                 |
+| Erro de permissão da chave                      | Verifique se a chave privada está correta e protegida                             |
+
+## Configuração recomendada rápida (AWS EC2)
+
+1. **Session** → Host Name + Porta 22 + SSH → Salvar sessão
+2. **Connection → Data** → Auto-login username
+3. **Connection → SSH → Auth** → carregar o `.ppk`
+4. **Connection** → Seconds between keepalives = `30`–`60`
+5. Salvar a sessão novamente
+
+Pronto! Com essas configurações você terá uma conexão estável e segura com sua instância EC2.
