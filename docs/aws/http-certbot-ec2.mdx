@@ -1,0 +1,224 @@
+---
+title: Usar o Certbot para habilitar HTTPS em instâncias EC2 Ubuntu com Apache ou Nginx
+description: Como instalar o Certbot em instâncias EC2 rodando Ubuntu Linux, solicitar e instalar certificado SSL/TLS do Let's Encrypt no Apache ou Nginx, com renovação automática.
+sidebar_label: Certbot HTTPS no Ubuntu EC2
+---
+
+# Usar o Certbot para habilitar HTTPS em instâncias EC2 Ubuntu com Apache ou Nginx
+
+**Nível de conteúdo:** Intermediário  
+**Tempo de leitura:** cerca de 6 minutos
+
+Instale o Certbot em instâncias EC2 rodando Ubuntu Linux, use-o para solicitar e instalar um certificado de domínio validado (DV) no servidor web Apache ou Nginx, com renovação automática.
+
+## Visão geral
+
+O [Certbot](https://certbot.eff.org/) é uma ferramenta para obter certificados SSL/TLS gratuitos do [Let's Encrypt](https://letsencrypt.org/) e (opcionalmente) habilitar automaticamente o HTTPS no seu servidor.
+
+Este artigo mostra como instalar o Certbot em instâncias Amazon EC2 rodando [Ubuntu Linux na AWS](https://ubuntu.com/aws), usá-lo para instalar um certificado HTTPS de domínio validado (usando o tipo de desafio [HTTP-01](https://letsencrypt.org/docs/challenge-types/#http-01-challenge)) no Apache ou Nginx, com [renovação automática de certificados](https://eff-certbot.readthedocs.io/en/stable/using.html#automated-renewals).
+
+:::note
+Este artigo se aplica **apenas ao Ubuntu Linux**. Existem artigos semelhantes para Amazon Linux 2023 (AL2023) e Amazon Linux 2 (AL2).
+:::
+
+## Outras opções
+
+Você pode usar o [Amazon CloudFront](https://aws.amazon.com/cloudfront/) (CDN global) com a instância EC2 como origem, para obter um nome de domínio como `d111111abcdef8.cloudfront.net` com HTTPS. O CloudFront suporta [nome de domínio personalizado](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/add-domain-existing-distribution.html#add-domain-standard) com certificados SSL/TLS públicos não exportáveis através do [AWS Certificate Manager](https://aws.amazon.com/certificate-manager/) **sem custo adicional**. Considere os [planos de preço fixo](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/flat-rate-pricing-plan.html) que combinam CloudFront com vários serviços da AWS em um preço mensal sem cobranças extras.
+
+Se desejar usar certificados do [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) diretamente na sua instância EC2, consulte: [Por que não consigo configurar certificados ACM para meu site hospedado em uma instância EC2?](https://repost.aws/knowledge-center/configure-acm-certificates-ec2). A partir de junho de 2025, o ACM introduziu [certificados SSL/TLS públicos exportáveis](https://aws.amazon.com/blogs/aws/aws-certificate-manager-introduces-exportable-public-ssl-tls-certificates-to-use-anywhere/) para uso em qualquer lugar. Consulte a [tabela de preços do ACM](https://aws.amazon.com/certificate-manager/pricing/) para mais detalhes.
+
+## Requisitos
+
+Certifique-se de ter:
+
+- Um **FQDN** (nome de domínio totalmente qualificado) cujo registro DNS aponte para o endereço IP público da sua instância EC2.
+  - Se você não possui um domínio, pode [registrar um novo domínio](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html#domain-register-procedure-section) usando o [Amazon Route 53](https://aws.amazon.com/route53/) e [criar um registro DNS do tipo A](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-creating.html).
+  - Para evitar que o endereço IPv4 público da EC2 mude, [associe um Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-eips.html).
+- Um **Security Group** anexado à instância EC2 que permita tráfego de entrada **HTTP (porta 80)** e **HTTPS (porta 443)** da internet.
+
+O Certbot suporta nomes de domínio IPv4 e [IPv6](https://letsencrypt.org/docs/ipv6-support/).
+
+:::info
+Os exemplos de script abaixo assumem um FQDN apenas IPv4: `ubuntu.example.com`. Ajuste conforme necessário.
+:::
+
+## Instalar o Certbot
+
+Instale o Certbot através do [Snap](https://eff-certbot.readthedocs.io/en/stable/install.html#snap-recommended) (método recomendado):
+
+```bash
+sudo snap install certbot --classic
+sudo ln -s -f /snap/bin/certbot /usr/bin/certbot
+sudo snap set certbot trust-plugin-with-root=ok
+sudo snap install certbot-dns-route53
+```
+
+## Usando o Certbot com o servidor web Apache
+
+_Substitua `ubuntu.example.com` pelo seu nome de domínio._
+
+### Instalar e configurar o Apache
+
+```bash
+sudo apt update
+sudo apt install -y apache2
+sudo a2enmod ssl
+sudo a2ensite default-ssl
+sudo systemctl enable --now apache2
+```
+
+### Verificar entrada DNS e configuração do servidor web
+
+```bash
+FQDN=ubuntu.example.com
+curl checkip.amazonaws.com && dig +short $FQDN
+curl -I $FQDN
+```
+
+Certifique-se de que os dois endereços IP coincidam e que o comando `curl` funcione.
+
+### Solicitar e instalar o certificado HTTPS
+
+```bash
+sudo certbot --apache
+```
+
+Aceite os Termos de Serviço do Let's Encrypt e informe o seu FQDN. O Certbot solicitará e instalará o certificado HTTPS no Apache.
+
+### Problema comum: Certbot não encontra VirtualHost
+
+Ao executar `sudo certbot --apache`, você pode receber a mensagem:
+
+```text
+We were unable to find a vhost with a ServerName or Address of seudominio.com.
+Which virtual host would you like to choose?
+1: 000-default.conf
+2: default-ssl.conf
+```
+
+Isso acontece porque **não existe um VirtualHost configurado** com o `ServerName` do seu domínio. O certificado é emitido, mas não é instalado automaticamente.
+
+#### Solução
+
+1. Crie o arquivo de VirtualHost:
+
+```bash
+sudo nano /etc/apache2/sites-available/seudominio.com.conf
+```
+
+Cole o conteúdo abaixo (substitua `seudominio.com` e o `DocumentRoot` se necessário):
+
+```apache
+<VirtualHost *:80>
+    ServerName seudominio.com
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/seudominio-error.log
+    CustomLog ${APACHE_LOG_DIR}/seudominio-access.log combined
+</VirtualHost>
+```
+
+2. Ative o site e recarregue o Apache:
+
+```bash
+sudo a2ensite seudominio.com.conf
+sudo a2dissite 000-default.conf          # opcional, mas recomendado
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+3. Instale o certificado que já foi gerado:
+
+```bash
+sudo certbot install --cert-name seudominio.com
+```
+
+Ou force a reinstalação:
+
+```bash
+sudo certbot --apache -d seudominio.com --reinstall
+```
+
+Escolha o VirtualHost que acabamos de criar quando o Certbot perguntar.
+
+## Usando o Certbot com o servidor web Nginx
+
+_Substitua `ubuntu.example.com` pelo seu nome de domínio._
+
+### Instalar e configurar o Nginx
+
+```bash
+sudo apt update
+sudo apt install -y nginx
+sudo systemctl enable --now nginx
+```
+
+### Verificar entrada DNS e configuração do servidor web
+
+```bash
+FQDN=ubuntu.example.com
+curl checkip.amazonaws.com && dig +short $FQDN
+curl -I $FQDN
+```
+
+### Solicitar e instalar o certificado HTTPS
+
+```bash
+sudo certbot --nginx
+```
+
+Aceite os Termos de Serviço do Let's Encrypt e informe o seu FQDN.
+
+## Verificação
+
+### Verificar o certificado
+
+```bash
+sudo certbot certificates
+```
+
+### Verificar a instalação
+
+Acesse o seu site no navegador para confirmar que o certificado HTTPS está instalado corretamente (`https://seudominio.com`).
+
+## Renovação automática
+
+O Certbot utiliza o timer `snap.certbot.renew.timer` do systemd diariamente para renovar automaticamente qualquer certificado que esteja a 30 dias ou menos da data de expiração.
+
+Para verificar a operação:
+
+```bash
+journalctl -u snap.certbot.renew.timer -f
+```
+
+## Mais informações
+
+Consulte o [Guia do Usuário do Certbot](https://eff-certbot.readthedocs.io/en/stable/using.html).
+
+### Múltiplos domínios em um único certificado
+
+O Certbot suporta vários domínios em um único certificado. Você precisará ajustar a configuração do Apache ou Nginx.
+
+**Para Apache**, atualize a seção `VirtualHost`:
+
+```apache
+<VirtualHost *:80>
+    ServerName example.com
+    ServerAlias www.example.com
+```
+
+**Para Nginx**:
+
+```nginx
+server {
+    server_name  example.com www.example.com;
+```
+
+Para cada nome de domínio, crie um registro DNS que resolva para o IP público da sua instância EC2. Reinicie o Apache/Nginx antes de executar o Certbot.
+
+Para mais informações, consulte a [documentação do Certbot](https://eff-certbot.readthedocs.io/en/stable/) e a página [Get Help](https://certbot.eff.org/pages/help).
+
+---
+
+- [Use Certbot to enable HTTPS on Ubuntu Linux EC2 instances running Apache or Nginx](https://repost.aws/articles/ARLx7JGFgmTdieKLIWtKiuaw/use-certbot-to-enable-https-on-ubuntu-linux-ec2-instances-running-apache-or-nginx)
