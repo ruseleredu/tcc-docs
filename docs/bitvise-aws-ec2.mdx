@@ -1,0 +1,123 @@
+---
+title: Conectar a uma instância EC2 da AWS com Bitvise SSH Client
+description: Guia completo em português para configurar o Bitvise SSH Client e conectar via SSH a uma VM (EC2) hospedada na AWS.
+sidebar_label: Bitvise + AWS EC2
+---
+
+# Conectar a uma instância EC2 da AWS com Bitvise SSH Client
+
+Este guia mostra como configurar o **Bitvise SSH Client** no Windows para acessar uma instância Linux na AWS (EC2) usando autenticação por chave privada.
+
+O Bitvise é uma excelente alternativa ao PuTTY: ele aceita arquivos `.pem` nativamente (não precisa converter para `.ppk`), possui SFTP integrado, perfis salvos, reconexão automática e interface moderna.
+
+## Pré-requisitos
+
+- Instância EC2 em execução com **IP público** ou **DNS público**
+- Security Group permitindo **SSH (porta 22)** a partir do seu IP (prefira o IP específico em vez de `0.0.0.0/0`)
+- Arquivo de chave privada `.pem` baixado no momento da criação da instância
+- Bitvise SSH Client instalado ([download oficial](https://www.bitvise.com/ssh-client-download))
+
+## 1. Importar a chave privada (`.pem`)
+
+O Bitvise aceita chaves no formato OpenSSH/PEM diretamente:
+
+1. Abra o **Bitvise SSH Client**.
+2. Na aba **Login**, clique em **Client key manager** (gerenciador de chaves do cliente).
+3. Clique em **Import**.
+4. Selecione o arquivo `.pem` (pode ser necessário mudar o filtro para “All files”).
+5. Confirme a importação. A chave aparecerá na lista.
+6. (Opcional) Clique com o botão direito na chave → **Edit** para adicionar uma descrição ou definir uma passphrase.
+
+:::tip
+Você também pode importar chaves `.ppk` (PuTTY) se já as tiver. O Bitvise converte automaticamente.
+:::
+
+## 2. Configurar a conexão
+
+### Aba Login (principal)
+
+1. **Host**: IP público ou DNS público da instância  
+   Exemplo: `ec2-xx-xx-xx-xx.compute-1.amazonaws.com` ou `54.123.45.67`
+2. **Port**: `22`
+3. **Username**: o usuário padrão da AMI (veja tabela abaixo)
+4. **Initial method**: selecione **publickey**
+5. **Client key**: escolha a chave que você importou no passo anterior
+6. Clique em **Save profile as...** e salve o perfil com um nome descritivo (ex: `aws-ec2-producao`)
+
+### Opções que controlam a conexão
+
+#### Aba Login
+
+- **Host** e **Port**
+- **Username**
+- **Initial method** → `publickey`
+- **Client key** (seleção da chave privada)
+- **Store host key** / verificação de fingerprint
+
+#### Aba Options
+
+- **Automatic reconnect**: recomendado (reconecta automaticamente em caso de queda)
+- **Keep-alive interval**: `30` ou `60` segundos (evita desconexões por inatividade)
+- **Enable compression**: opcional (útil em conexões lentas)
+
+#### Aba Terminal
+
+- Configurações de emulação de terminal, fonte, cores e tamanho
+- **Open Terminal** e **Open SFTP** automaticamente após login (muito útil)
+
+#### Aba Tunneling (avançado)
+
+- Port forwarding local/remoto
+- Dynamic tunneling (SOCKS proxy)
+
+#### Aba SFTP
+
+- Configurações do cliente SFTP integrado (pasta inicial, transferências, etc.)
+
+:::info
+Após configurar, sempre salve o **perfil** (profile). Na próxima vez você só precisa carregar o perfil e clicar em **Log in**.
+:::
+
+## 3. Conectar
+
+1. Carregue o perfil salvo (ou preencha os campos).
+2. Clique em **Log in**.
+3. Na primeira conexão, aceite a impressão digital do host (host key).
+4. O Bitvise abrirá automaticamente a janela de **Terminal** e, se configurado, a janela de **SFTP**.
+
+## Usuários padrão por AMI
+
+| AMI / Distribuição                   | Usuário padrão         |
+| ------------------------------------ | ---------------------- |
+| Amazon Linux / Amazon Linux 2 / 2023 | `ec2-user`             |
+| Ubuntu                               | `ubuntu`               |
+| Debian                               | `admin`                |
+| CentOS / Rocky / Alma                | `centos` ou `ec2-user` |
+| RHEL / SUSE                          | `ec2-user`             |
+| Bitnami                              | `bitnami`              |
+
+## Solução de problemas comuns
+
+| Problema                                                        | Possível causa e solução                                                                 |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `Authentication failed` / `No supported authentication methods` | Chave não importada corretamente, usuário errado ou chave não corresponde à da instância |
+| Timeout de conexão                                              | Security Group não libera a porta 22 do seu IP, ou a instância não tem IP público        |
+| Desconexões frequentes                                          | Ative **Automatic reconnect** e aumente o **Keep-alive interval**                        |
+| Erro ao importar chave                                          | Verifique se o arquivo `.pem` está íntegro e tente importar novamente                    |
+
+## Configuração recomendada rápida (AWS EC2)
+
+1. Importe o arquivo `.pem` no **Client key manager**.
+2. Na aba **Login**:
+   - Host = IP/DNS da instância
+   - Port = 22
+   - Username = usuário correto da AMI
+   - Initial method = `publickey`
+   - Client key = chave importada
+3. Na aba **Options**:
+   - Automatic reconnect = ativado
+   - Keep-alive = 30–60 segundos
+4. Salve o perfil.
+5. Clique em **Log in**.
+
+Pronto! Com essas configurações você terá uma conexão estável, com terminal e SFTP integrados, para sua instância EC2.
