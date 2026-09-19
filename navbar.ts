@@ -12,7 +12,12 @@ const navbarItems: NavbarItem[] = [
         to: 'pathname:///engenharia/index.html', // Maps to static/engenharia/index.html  to: 'pathname:///engenharia/index.html', // Link to a page in your API docs
         position: 'left',
     },
-    { to: "/blog", label: "Blog", position: "left" },
+    // { to: "/blog", label: "Blog", position: "left" },
+    {
+        href: "https://nupet.daelt.ct.utfpr.edu.br/tcc/engenharia/index.html",
+        label: "Nupet",
+        position: "right",
+    },
     {
         href: "https://github.com/ruseleredu/tcc-docs",
         label: "GitHub",
