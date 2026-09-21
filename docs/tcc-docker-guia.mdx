@@ -1,0 +1,372 @@
+---
+id: tcc-docker-guia
+title: Guia do ambiente TCC/DAELT em Docker
+sidebar_label: Guia TCC/DAELT (Docker)
+sidebar_position: 1
+description: MariaDB, import/backup, phpMyAdmin, dados fake, manipulação via Perl e o pipeline de PDF, HTML e email de teste.
+keywords: [docker, mariadb, phpmyadmin, perl, latex, mailpit, tcc, daelt]
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+Guia único do ambiente do projeto **TCC/DAELT** rodando em Docker: subir os
+serviços, **importar** e fazer **backup** do MariaDB, usar o **phpMyAdmin**,
+gerar **dados fake**, **ler/manipular** o banco com Perl e executar o
+**pipeline** que produz PDF, HTML e email de teste.
+
+Os dois bancos são `DAELT` (professores, alunos, disciplinas, grupos) e `TCC`
+(equipes, orientadores, bancas, documentos). O `TCC` referencia o `DAELT` por
+foreign keys cruzadas — por isso os scripts conectam como `root`, que enxerga
+os dois schemas.
+
+## Serviços e credenciais
+
+| Serviço      | Imagem                            | Porta (host)            | Função                              |
+| ------------ | --------------------------------- | ----------------------- | ----------------------------------- |
+| `mariadb`    | mariadb:latest                    | 3306                    | banco de dados                      |
+| `phpmyadmin` | linuxserver/phpmyadmin            | 8080                    | interface web do banco              |
+| `mailpit`    | axllent/mailpit                   | 8025 (web), 1025 (SMTP) | captura de emails de teste          |
+| `exporter`   | build local (Perl + DBD::MariaDB) | —                       | gera JSON/HTML/`.tex` e envia email |
+| `texlive`    | build local (texlive/texlive)     | —                       | compila `.tex` em PDF               |
+
+| Papel | Usuário   | Senha          | Enxerga         |
+| ----- | --------- | -------------- | --------------- |
+| admin | `root`    | `rootpassword` | TCC **e** DAELT |
+| app   | `tccuser` | `tccpassword`  | só TCC          |
+
+:::note[Comandos sob demanda]
+No `docker-compose.yml`, os `command:` do `exporter` e do `texlive` ficam
+comentados de propósito: cada tarefa é disparada com
+`docker compose run --rm <serviço> <comando>`, sem um comando fixo.
+:::
+
+---
+
+## 1. Subir o ambiente
+
+```bash
+docker compose up -d mariadb        # sobe só o banco
+docker compose ps                   # status / health
+docker compose logs -f mariadb      # acompanha o log (Ctrl+C sai)
+```
+
+O MariaDB fica pronto quando o healthcheck reporta `healthy`; os serviços que
+dependem dele só arrancam depois.
+
+---
+
+## 2. Cliente SQL
+
+Shell SQL interativo dentro do container:
+
+```bash
+docker compose exec mariadb mariadb -uroot -prootpassword
+```
+
+```sql
+SHOW DATABASES;
+USE TCC;
+SHOW TABLES;
+DESCRIBE BANCAS_EQUIPES;
+\q
+```
+
+Consulta única, sem entrar no prompt:
+
+```bash
+docker compose exec mariadb mariadb -uroot -prootpassword \
+  -e "SELECT ID, NOME FROM DAELT.PROFESSORES LIMIT 5;"
+```
+
+---
+
+## 3. Importar dados
+
+### 3.1 Import automático (primeira subida)
+
+O compose monta `.sql` em `/docker-entrypoint-initdb.d/`. Eles rodam **uma única
+vez**, quando o volume `mariadb_data` está vazio, em ordem alfabética:
+
+```
+0-init.sql          -> estrutura inicial
+1-tcc-schema.sql    -> schema/dados do TCC
+2-daelt-schema.sql  -> schema/dados do DAELT
+```
+
+:::caution[Alterou um `.sql` de init?]
+Eles só rodam com o volume vazio. Para reexecutar, recrie o volume (ver §5).
+:::
+
+### 3.2 Dump manual (banco já no ar)
+
+<Tabs groupId="os">
+<TabItem value="bash" label="Linux / macOS / Git Bash" default>
+
+```bash
+docker compose exec -T mariadb mariadb -uroot -prootpassword TCC < tcc-data.sql
+```
+
+</TabItem>
+<TabItem value="pwsh" label="Windows PowerShell">
+
+```powershell
+Get-Content tcc-data.sql | docker compose exec -T mariadb mariadb -uroot -prootpassword TCC
+```
+
+</TabItem>
+</Tabs>
+
+:::tip[O `-T` é obrigatório]
+Ele desativa o pseudo-terminal, sem o qual o redirecionamento do arquivo não
+funciona. Para um dump que já contém `CREATE DATABASE`/`USE`, omita o nome do
+banco no fim.
+:::
+
+---
+
+## 4. Backup (dump)
+
+```bash
+# Um banco
+docker compose exec mariadb mariadb-dump -uroot -prootpassword \
+  --databases TCC > backup-tcc.sql
+
+# Os dois juntos (recomendado: há FKs cruzadas)
+docker compose exec mariadb mariadb-dump -uroot -prootpassword \
+  --databases DAELT TCC > backup-completo.sql
+
+# Só estrutura / só dados
+docker compose exec mariadb mariadb-dump -uroot -prootpassword --no-data       --databases DAELT TCC > schema.sql
+docker compose exec mariadb mariadb-dump -uroot -prootpassword --no-create-info --databases DAELT TCC > dados.sql
+```
+
+Restaurar é o import da §3.2:
+
+```bash
+docker compose exec -T mariadb mariadb -uroot -prootpassword < backup-completo.sql
+```
+
+:::tip[Dump com data no nome (PowerShell)]
+
+```powershell
+docker compose exec mariadb mariadb-dump -uroot -prootpassword --databases DAELT TCC `
+  > "backup-$(Get-Date -Format yyyyMMdd).sql"
+```
+
+:::
+
+---
+
+## 5. Ciclo de vida e reset
+
+```bash
+docker compose stop            # para (mantém dados)
+docker compose start           # religa
+docker compose down            # remove containers/rede (mantém o volume)
+docker compose down -v         # remove TAMBÉM o volume -> APAGA o banco
+```
+
+**Resetar do zero** (recarrega os `.sql` de init):
+
+```bash
+docker compose down -v
+docker compose up -d mariadb
+```
+
+---
+
+## 6. phpMyAdmin
+
+```bash
+docker compose up -d phpmyadmin
+```
+
+Abra **http://localhost:8080** (login já preenchido pelo compose). Pela
+interface você pode navegar pelos schemas, rodar SQL (aba **SQL**), **importar**
+`.sql`/`.csv` por upload (aba **Importar**, resolve o "colocar o arquivo dentro
+do container" da §3.3), **exportar** um backup visual (aba **Exportar** →
+"Personalizado") e editar/apagar linhas na listagem de cada tabela.
+
+---
+
+## 7. Gerar dados fake
+
+Sem os dumps reais (ou para um ambiente limpo), popule os dois bancos de forma
+coerente com as foreign keys, incluindo bancas finais (tipo 4) abertas e bancas
+de proposta (tipo 1):
+
+```bash
+docker compose up -d mariadb mailpit
+docker compose run --rm exporter perl gerar_dados_fake.pl
+```
+
+```
+Dados fake gerados (seed=42).
+  DAELT.PROFESSORES              20
+  DAELT.ALUNOS                   48
+  TCC.EQUIPES                    12
+  ...
+Bancas finais (tipo 4) abertas: 12  -> cert-banca terá conteúdo.
+```
+
+Opções: `--no-wipe` (não apaga o existente) e `--seed N` (muda o sorteio). Por
+padrão ele **limpa** (TRUNCATE) as tabelas antes de inserir.
+
+:::tip[Resolve o PDF vazio]
+Bancas finais abertas são o que faltava para o `cert-banca` sair com conteúdo.
+:::
+
+---
+
+## 8. Ler e manipular via Perl
+
+O `manipular_bd.pl` conecta como `root` via `DBD::MariaDB` e reúne exemplos.
+
+**Leitura:**
+
+```bash
+docker compose run --rm exporter perl manipular_bd.pl stats     # panorama
+docker compose run --rm exporter perl manipular_bd.pl profs     # professores
+docker compose run --rm exporter perl manipular_bd.pl equipes   # equipes + nota
+docker compose run --rm exporter perl manipular_bd.pl aluno Silva
+```
+
+**Manipulação (INSERT / UPDATE / DELETE / transação):**
+
+```bash
+docker compose run --rm exporter perl manipular_bd.pl add-prof 99 "Novo Docente" novo@utfpr.edu.br
+docker compose run --rm exporter perl manipular_bd.pl set-email 99 outro@utfpr.edu.br
+docker compose run --rm exporter perl manipular_bd.pl fecha-equipe EQ2026-001
+docker compose run --rm exporter perl manipular_bd.pl del-prof 99
+```
+
+Padrões demonstrados: consulta parametrizada com `?`, `selectall_arrayref(...,
+{ Slice => {} })` (linhas como hash nomeada), **transação** com `begin_work` /
+`commit` / `rollback` dentro de `eval` (no `fecha-equipe`, encerrando equipe e
+relacionamentos atomicamente) e tratamento de violação de FK no `del-prof`.
+
+---
+
+## 9. Pipeline: PDF, HTML e email
+
+Pré-requisito: banco com dados (§7). Coloque em `scripts/` os arquivos usados
+aqui: `gerar_dados_fake.pl`, `export_html.pl`, `test_email.pl`, `create_pdf.sh`,
+`pdf_env.sh`, `compila_pdf.sh` e os `create_pdf_*.pl`.
+
+### 9.1 PDF (exporter → texlive)
+
+Dois estágios: o Perl monta os `.tex` em `/www/engenharia/tex`; o texlive
+compila para `/www/engenharia/pdf`.
+
+```bash
+# Estágio 1 — gerar os .tex
+docker compose run --rm exporter bash create_pdf.sh -3 2026-07-31
+# Estágio 2 — compilar
+docker compose run --rm texlive
+```
+
+```
+>> compilando cert-orientador.tex
+>> compilando cert-banca.tex
+Concluído: 3 PDF(s) gerado(s) em /www/engenharia/pdf
+```
+
+Os PDFs ficam em `./www/engenharia/pdf/` no host.
+
+:::caution[`document` vazio no PDF]
+Significa consulta sem linhas (sem bancas do tipo 4 abertas). Rode o
+`gerar_dados_fake.pl` e repita os dois estágios. Se um `.tex` falha na
+compilação, o `compila_pdf.sh` preserva o `.log` ao lado para diagnóstico.
+:::
+
+### 9.2 HTML de dados (exporter)
+
+<Tabs groupId="html">
+<TabItem value="single" label="Página única (autocontida)" default>
+
+```bash
+docker compose run --rm exporter perl export_html.pl
+```
+
+```
+HTML gerado: /www/dados.html (12 equipes)
+```
+
+Abra `./www/dados.html`: tabela de equipes ativas, orientador e nota. Já traz
+`<meta charset="utf-8">`, então os acentos aparecem corretos.
+
+</TabItem>
+<TabItem value="site" label="Site completo">
+
+```bash
+docker compose run --rm exporter bash create_www.sh
+```
+
+Requer todos os `create_www_*.pl` em `scripts/`; grava `professores.html` e a
+pasta `engenharia/` em `./www`.
+
+</TabItem>
+</Tabs>
+
+### 9.3 Email (exporter → mailpit)
+
+O `exporter` já tem `SMTP_HOST=mailpit` e `SMTP_PORT=1025`. O mailpit **captura**
+as mensagens (não entrega), então é seguro testar com qualquer endereço.
+
+```bash
+# Teste isolado (não toca no banco)
+docker compose run --rm exporter perl test_email.pl
+```
+
+Abra **http://localhost:8025** — o email aparece na caixa.
+
+Envio real do projeto, começando pelo modo tela (`-t`, mostra sem enviar):
+
+```bash
+docker compose run --rm exporter perl send_resultproposta.pl -t
+docker compose run --rm exporter perl send_resultproposta.pl
+```
+
+Ele pede `Cód equipe (CTRL+D aborta):` — use `EQ2026-001` … `EQ2026-006`
+(equipes com banca de proposta, tipo 1, criadas pelo gerador de dados fake).
+
+---
+
+## 10. Pipeline completo, em sequência
+
+```bash
+# 1. Infra
+docker compose up -d mariadb mailpit
+# 2. Dados
+docker compose run --rm exporter perl gerar_dados_fake.pl
+# 3. PDF (dois estágios)
+docker compose run --rm exporter bash create_pdf.sh -3 2026-07-31
+docker compose run --rm texlive
+# 4. HTML
+docker compose run --rm exporter perl export_html.pl
+# 5. Email
+docker compose run --rm exporter perl test_email.pl
+```
+
+| Artefato | Onde encontrar                      |
+| -------- | ----------------------------------- |
+| PDFs     | `./www/engenharia/pdf/*.pdf` (host) |
+| HTML     | `./www/dados.html` (host)           |
+| Emails   | http://localhost:8025 (mailpit)     |
+
+---
+
+## 11. Resolução de problemas
+
+| Sintoma                                      | Causa provável                | Saída                                         |
+| -------------------------------------------- | ----------------------------- | --------------------------------------------- |
+| `Can't connect to server on 'mariadb' (115)` | app conectou antes do banco   | healthcheck + retry tratam; aguarde `healthy` |
+| Import por `<` não faz nada                  | faltou `-T` no `exec`         | use `docker compose exec -T ...`              |
+| Alterou `.sql` mas dados não mudaram         | init só roda com volume vazio | `docker compose down -v` e suba de novo       |
+| Acentos quebrados (`Ã§`)                     | fonte sem `use utf8;`         | passe os `.pl` pelo `migrar_scripts.pl`       |
+| `.tex`/PDF com `document` vazio              | consulta sem linhas           | rode `gerar_dados_fake.pl`                    |
+| `Nenhum .tex encontrado` no texlive          | estágio 1 não rodou           | rode `create_pdf.sh` antes                    |
+| Email não aparece no mailpit                 | mailpit fora do ar            | `docker compose up -d mailpit`                |
+| `send_resultproposta` não acha equipe        | equipe sem banca tipo 1       | use `EQ2026-001`..`006`                       |
+| phpMyAdmin não abre                          | serviço não subiu             | `docker compose up -d phpmyadmin`             |
