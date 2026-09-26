@@ -7,7 +7,7 @@ import navbarItems from "./navbar"; // Import your new navbar file
 
 const config: Config = {
   title: 'TCC Docs',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'TCC Docs with Dinosaurs are cool',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
