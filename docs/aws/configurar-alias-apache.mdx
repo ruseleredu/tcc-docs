@@ -1,0 +1,159 @@
+---
+id: configurar-alias-apache
+title: Como Configurar Alias no Apache no Ubuntu
+sidebar_label: Alias no Apache
+description: Aprenda a mapear diretórios fora da raiz do servidor usando a diretiva Alias no Apache2 no Ubuntu.
+keywords:
+  - apache
+  - ubuntu
+  - alias
+  - docusaurus
+  - servidor web
+---
+
+import Admonition from "@theme/Admonition";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Como Configurar Alias no Apache no Ubuntu
+
+Ao gerenciar um servidor web Apache, é comum precisar expor um diretório do sistema (como `/home/ubuntu/www`) através de uma subpasta na URL (exemplo: `http://seu-ip/tcc`), sem mover os arquivos fisicamente para dentro da raiz da web (`/var/www/html`).
+
+Para isso, utilizamos a diretiva **`Alias`** do Apache. Este guia abrange o passo a passo completo no **Ubuntu Linux**.
+
+---
+
+## Pré-requisitos
+
+Antes de iniciar, certifique-se de que você possui:
+
+- Servidor **Ubuntu** com o Apache instalado (`apache2`).
+- Acesso ao terminal com privilégios de `sudo`.
+- O diretório de destino criado no sistema (exemplo: `/home/ubuntu/www`).
+
+---
+
+## Passo 1: Modificar a Configuração do Apache
+
+Edite o arquivo do VirtualHost padrão do Apache. Geralmente, ele fica localizado em `/etc/apache2/sites-available/000-default.conf`.
+
+```bash
+sudo nano /etc/apache2/sites-available/000-default.conf
+```
+
+Dentro do bloco `<VirtualHost *:80>`, adicione a instrução `Alias` e o bloco de permissões `<Directory>` correspondente:
+
+```apache title="/etc/apache2/sites-available/000-default.conf"
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    # Mapeamento do Alias: URL -> Caminho do Sistema
+    Alias /tcc "/home/ubuntu/www"
+
+    # Configuração de Permissões para o diretório
+    <Directory "/home/ubuntu/www">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+
+<Admonition type="info" title="Entendendo os Parâmetros">
+  * **`Alias /tcc "/home/ubuntu/www"`**: Mapeia todas as requisições enviadas
+  para `http://seu-ip/tcc` para o caminho local `/home/ubuntu/www`. * **`Options
+  Indexes FollowSymLinks`**: Permite a listagem de arquivos (se não houver
+  `index.html` ou `index.php`) e segue links simbólicos. * **`AllowOverride
+  All`**: Permite o uso de arquivos `.htaccess` dentro do diretório. *
+  **`Require all granted`**: Concede acesso público ao diretório.
+</Admonition>
+
+---
+
+## Passo 2: Ajustar Permissões de Pastas
+
+Por padrão, o Apache roda sob o usuário **`www-data`** no Ubuntu. O serviço precisa ter permissões de **leitura e execução** ao longo de todo o caminho da pasta até chegar aos seus arquivos.
+
+Execute os comandos abaixo no terminal:
+
+```bash
+# Concede permissão de execução na pasta home do usuário
+chmod 755 /home/ubuntu
+
+# Aplica permissões de leitura e execução no diretório web e seus subdiretórios
+chmod -R 755 /home/ubuntu/www
+```
+
+<Admonition
+  type="warning"
+  title="Atenção aos Erros de Permissão (403 Forbidden)"
+>
+  Se a pasta `/home/ubuntu` tiver permissões restritas (como `700`), o Apache
+  não conseguirá atravessar a estrutura de diretórios, resultando em um erro
+  **403 Forbidden**, mesmo que a pasta `/home/ubuntu/www` esteja configurada
+  como `755`.
+</Admonition>
+
+---
+
+## Passo 3: Testar e Reiniciar o Apache
+
+Sempre valide as configurações antes de reiniciar o serviço para evitar indisponibilidades por erros de sintaxe.
+
+1. **Valide a sintaxe do arquivo de configuração:**
+
+   ```bash
+   sudo apachectl configtest
+   ```
+
+   _Resultado esperado:_ `Syntax OK`
+
+2. **Reinicie o serviço do Apache:**
+
+   ```bash
+   sudo systemctl restart apache2
+   ```
+
+---
+
+## Passo 4: Validar o Acesso
+
+Abra o seu navegador ou faça uma requisição via `curl` para testar o acesso:
+
+<Tabs>
+  <TabItem value="browser" label="Navegador Web" default>
+    Acesse a URL no navegador:
+    
+    ```text
+    http://<SEU-IP-OU-DOMINIO>/tcc
+    ```
+  </TabItem>
+  <TabItem value="terminal" label="Terminal (cURL)">
+    Teste via linha de comando (incluindo a barra no final):
+
+    ```bash
+    curl -I http://localhost/tcc/
+    ```
+
+    Para seguir automaticamente os redirecionamentos com o curl e ver o status final de uma só vez, utilize a flag `-L`:
+
+      ```bash
+    curl -IL http://localhost/tcc
+    ```
+
+  </TabItem>
+</Tabs>
+
+---
+
+## Resolução de Problemas Frequentes
+
+| Problema / Erro               | Causa Provável                                                      | Solução                                                             |
+| :---------------------------- | :------------------------------------------------------------------ | :------------------------------------------------------------------ |
+| **403 Forbidden**             | Falta de permissões de leitura no diretório ou em suas pastas pai.  | Execute `chmod 755 /home/ubuntu` e `chmod -R 755 /home/ubuntu/www`. |
+| **404 Not Found**             | Erro de digitação no caminho do `Alias` ou no VirtualHost alterado. | Verifique o arquivo `.conf` ativo em `/etc/apache2/sites-enabled/`. |
+| **500 Internal Server Error** | Regra incorreta em arquivo `.htaccess` existente na pasta.          | Verifique os logs do Apache em `/var/log/apache2/error.log`.        |
