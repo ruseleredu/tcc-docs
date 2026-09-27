@@ -87,7 +87,7 @@ const config: Config = {
     navbar: {
       title: 'TCC/DAELT/UTFPR',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'UTFPR Logo',
         src: 'img/UTFPR_logo.svg',
       },
       items: navbarItems, // Drop the imported array here
