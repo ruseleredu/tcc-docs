@@ -36,7 +36,7 @@ npm install --save remark-math@6 rehype-katex@7
 
 ```bash
 git clone https://github.com/ruseleredu/tcc-docs.git
-cd iiot-docs
+cd tcc-docs
 npm i
 ```
 
