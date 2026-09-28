@@ -32,3 +32,20 @@
 
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
+
+/* Removes the external link icon specifically in the footer */
+.footer__link-item svg {
+  display: none;
+}
+
+@import url("/katex/katex.min.css");
+
+.course-banner {
+  text-align: center;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+}
+
+.course-banner h2 {
+  margin: 0;
+}

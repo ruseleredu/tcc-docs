@@ -32,6 +32,8 @@
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
     "sqlite": "^5.1.1"
   },
   "devDependencies": {
@@ -55,5 +57,10 @@
   },
   "engines": {
     "node": ">=20.0"
+  },
+  "allowScripts": {
+    "@swc/core@1.15.47": true,
+    "core-js@3.50.0": true,
+    "better-sqlite3@13.0.3": true
   }
 }
